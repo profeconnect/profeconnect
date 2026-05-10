@@ -38,6 +38,14 @@ export default function Navbar() {
             Inicio
           </NavLink>
           <NavLink
+            to="/chatbot"
+            className={({ isActive }) =>
+              `${baseLink} ${isActive ? activeLink : 'text-slate-700'}`
+            }
+          >
+            Chatbot
+          </NavLink>
+          <NavLink
             to="/perfil"
             className={({ isActive }) =>
               `${baseLink} ${isActive ? activeLink : 'text-slate-700'}`

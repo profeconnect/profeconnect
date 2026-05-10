@@ -6,6 +6,7 @@ import LoginPage from '../pages/LoginPage';
 import RegisterRequestPage from '../pages/RegisterRequestPage';
 import DashboardPage from '../pages/DashboardPage';
 import ProfilePage from '../pages/ProfilePage';
+import ChatbotPage from '../pages/ChatbotPage';
 import AdminUsersPage from '../pages/AdminUsersPage';
 import AdminRequestsPage from '../pages/AdminRequestsPage';
 import NotFoundPage from '../pages/NotFoundPage';
@@ -23,6 +24,7 @@ export default function AppRoutes() {
         <Route element={<Layout />}>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/perfil" element={<ProfilePage />} />
+          <Route path="/chatbot" element={<ChatbotPage />} />
 
           <Route element={<RoleRoute allow={['admin']} />}>
             <Route path="/admin/usuarios" element={<AdminUsersPage />} />

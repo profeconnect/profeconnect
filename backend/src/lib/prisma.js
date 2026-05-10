@@ -4,9 +4,6 @@ const { Pool } = require("pg");
 const { PrismaClient } = require("@prisma/client");
 const { PrismaPg } = require("@prisma/adapter-pg");
 
-// Supabase: el puerto 6543 (pooler transaccional) suele provocar timeouts con Prisma/pg
-// en servidores Node de larga duración. Preferir DIRECT_URL (sesión/directo, p. ej. 5432).
-// Opcional: DATABASE_APP_URL = cadena "Direct connection" del panel de Supabase si aún falla.
 const connectionString =
   process.env.DATABASE_APP_URL ||
   process.env.DIRECT_URL ||
