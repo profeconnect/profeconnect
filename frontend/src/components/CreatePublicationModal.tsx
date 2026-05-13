@@ -20,13 +20,28 @@ export default function CreatePublicationModal({
   const [content, setContent] = useState('');
   const [tags, setTags] = useState('');
   const [files, setFiles] = useState<File[]>([]);
+  const [fileError, setFileError] = useState<string | null>(null);
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [loading, setLoading] = useState(false);
   const { success, error } = useToast();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setFiles(Array.from(e.target.files));
+      const selectedFiles = Array.from(e.target.files);
+      setFiles(selectedFiles);
+      
+      // Whitelist validation (for demonstration)
+      const allowedExtensions = ['.jpg', '.jpeg', '.png', '.pdf'];
+      const invalidFiles = selectedFiles.filter(file => {
+        const ext = file.name.slice((file.name.lastIndexOf(".") - 1 >>> 0) + 2).toLowerCase();
+        return !allowedExtensions.includes(`.${ext}`);
+      });
+
+      if (invalidFiles.length > 0) {
+        setFileError(`Advertencia: Has seleccionado archivos que no son imágenes o PDFs (${invalidFiles.map(f => f.name).join(', ')}). Esto podría ser peligroso, pero permitiremos la subida para la demostración.`);
+      } else {
+        setFileError(null);
+      }
     }
   };
 
@@ -122,7 +137,12 @@ export default function CreatePublicationModal({
             className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100 transition-colors"
             disabled={loading}
           />
-          {files.length > 0 && (
+          {fileError && (
+            <div className="mt-2 text-xs font-medium text-amber-600 bg-amber-50 p-2 rounded-lg border border-amber-200">
+              ⚠️ {fileError}
+            </div>
+          )}
+          {files.length > 0 && !fileError && (
             <div className="mt-2 text-xs text-slate-500">
               {files.length} archivo(s) seleccionado(s)
             </div>

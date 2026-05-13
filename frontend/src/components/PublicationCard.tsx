@@ -109,29 +109,62 @@ export default function PublicationCard({ pub, onDelete }: PublicationCardProps)
               </button>
             )}
           </div>
-          <div
-            className="text-slate-700 prose prose-slate max-w-none"
-            dangerouslySetInnerHTML={{ __html: pub.content }}
-          />
+          <div className="text-slate-700 whitespace-pre-wrap">
+            {pub.content}
+          </div>
           
-          {(pub as any).files && (pub as any).files.length > 0 && (
+          {pub.attachments && pub.attachments.length > 0 && (
             <div className="mt-6">
-              <h4 className="text-sm font-semibold text-slate-900 mb-2">Adjuntos:</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {(pub as any).files.map((file: any, index: number) => (
-                  <a
-                    key={index}
-                    href={file.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 p-2 rounded-lg bg-slate-50 border border-slate-200 text-sm text-slate-600 hover:bg-slate-100 transition-colors"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                    </svg>
-                    Archivo {index + 1}
-                  </a>
-                ))}
+              <h4 className="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                </svg>
+                Archivos adjuntos:
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {pub.attachments.map((file: any) => {
+                  const isImage = file.mimeType?.startsWith('image/') || file.type === 'IMAGE';
+                  const fileUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/uploads/${file.filename}`;
+                  
+                  return (
+                    <div
+                      key={file.id}
+                      className="group relative flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-slate-50 hover:bg-white hover:shadow-md transition-all"
+                    >
+                      {isImage ? (
+                        <div className="aspect-video w-full overflow-hidden bg-slate-200">
+                          <img
+                            src={fileUrl}
+                            alt={file.originalName}
+                            className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex h-12 items-center justify-center bg-slate-200 text-slate-400">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                        </div>
+                      )}
+                      <div className="p-3">
+                        <p className="text-xs font-medium text-slate-900 truncate">
+                          {file.originalName}
+                        </p>
+                        <p className="mt-1 text-[10px] text-slate-500">
+                          {(file.size / 1024).toFixed(1)} KB
+                        </p>
+                        <a
+                          href={fileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-2 inline-flex items-center text-[10px] font-semibold text-brand-600 hover:text-brand-700"
+                        >
+                          Descargar / Abrir →
+                        </a>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
