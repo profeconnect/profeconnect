@@ -101,6 +101,16 @@ export interface PublicationAuthor {
   role: string | null;
 }
 
+export interface Attachment {
+  id: number;
+  url: string;
+  fileType?: string;
+  filename?: string;
+  originalName?: string;
+  mimeType?: string;
+  size?: number;
+}
+
 export interface Publication {
   id: number;
   title: string;
@@ -111,6 +121,7 @@ export interface Publication {
   updatedAt: string;
   author: PublicationAuthor;
   tags: any[];
+  attachments?: Attachment[];
 }
 
 export interface CreatePublicationPayload {

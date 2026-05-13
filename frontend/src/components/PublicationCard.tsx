@@ -122,9 +122,9 @@ export default function PublicationCard({ pub, onDelete }: PublicationCardProps)
                 Archivos adjuntos:
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {pub.attachments.map((file: any) => {
-                  const isImage = file.mimeType?.startsWith('image/') || file.type === 'IMAGE';
-                  const fileUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/uploads/${file.filename}`;
+                {pub.attachments.map((file) => {
+                  const isImage = file.fileType?.startsWith('image/') || file.mimeType?.startsWith('image/');
+                  const fileUrl = file.url || `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/uploads/${file.filename}`;
                   
                   return (
                     <div
@@ -135,7 +135,7 @@ export default function PublicationCard({ pub, onDelete }: PublicationCardProps)
                         <div className="aspect-video w-full overflow-hidden bg-slate-200">
                           <img
                             src={fileUrl}
-                            alt={file.originalName}
+                            alt={file.originalName || 'Imagen'}
                             className="h-full w-full object-cover transition-transform group-hover:scale-105"
                           />
                         </div>
@@ -148,10 +148,10 @@ export default function PublicationCard({ pub, onDelete }: PublicationCardProps)
                       )}
                       <div className="p-3">
                         <p className="text-xs font-medium text-slate-900 truncate">
-                          {file.originalName}
+                          {file.originalName || file.filename || 'Archivo'}
                         </p>
                         <p className="mt-1 text-[10px] text-slate-500">
-                          {(file.size / 1024).toFixed(1)} KB
+                          {file.size ? `${(file.size / 1024).toFixed(1)} KB` : 'Tamaño desconocido'}
                         </p>
                         <a
                           href={fileUrl}
