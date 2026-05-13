@@ -21,6 +21,8 @@ actual class ChatSocketService actual constructor(
     private var errorCallback: ((String) -> Unit)? = null
 
     actual fun connect() {
+        if (rawSocket != null) return
+
         val opts: dynamic = js("({})")
         opts.auth = js("({})")
         opts.auth.token = tokenProvider() ?: ""
@@ -28,7 +30,8 @@ actual class ChatSocketService actual constructor(
 
         rawSocket = socketIO("$serverUrl/chatbot", opts).also { socket ->
             socket.on("chat:token") { data ->
-                tokenCallback?.invoke(data.unsafeCast<String>())
+                val token = data?.token?.unsafeCast<String>() ?: return@on
+                tokenCallback?.invoke(token)
             }
             socket.on("chat:done") { _ ->
                 doneCallback?.invoke()
@@ -37,17 +40,21 @@ actual class ChatSocketService actual constructor(
                 val msg: String = data?.message?.unsafeCast<String>() ?: "Error del asistente"
                 errorCallback?.invoke(msg)
             }
+            socket.connect()
         }
     }
 
     actual fun disconnect() {
+        rawSocket?.off("chat:token")
+        rawSocket?.off("chat:done")
+        rawSocket?.off("chat:error")
         rawSocket?.disconnect()
         rawSocket = null
     }
 
     actual fun sendMessage(history: List<ChatMessageRequest>) {
         val payload: dynamic = js("({})")
-        payload.history = history.map { msg ->
+        payload.messages = history.map { msg ->
             val jsMsg: dynamic = js("({})")
             jsMsg.role    = msg.role
             jsMsg.content = msg.content

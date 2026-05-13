@@ -76,6 +76,7 @@ async function getPublicationFeed() {
   const posts = await prisma.post.findMany({
     where: {
       status: "PUBLISHED",
+      deletedAt: null,
     },
     orderBy: {
       createdAt: "desc",
@@ -92,6 +93,29 @@ async function getPublicationFeed() {
   });
 
   return posts.map(mapPostToResponse);
+}
+
+async function getPublicationById(id) {
+  const post = await prisma.post.findUnique({
+    where: { id },
+    include: {
+      author: {
+        include: {
+          role: true,
+        },
+      },
+      attachments: true,
+      tags: true,
+    },
+  });
+
+  if (!post || post.deletedAt) {
+    const error = new Error("Publicación no encontrada");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  return mapPostToResponse(post);
 }
 
 async function updatePublication(id, userId, data) {
@@ -182,6 +206,7 @@ async function deletePublication(id, userId) {
 module.exports = {
   createPublication,
   getPublicationFeed,
+  getPublicationById,
   updatePublication,
   deletePublication,
 };

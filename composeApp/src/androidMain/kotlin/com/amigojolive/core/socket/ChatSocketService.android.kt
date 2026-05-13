@@ -23,6 +23,11 @@ actual class ChatSocketService actual constructor(
     private var errorCallback: ((String) -> Unit)? = null
 
     actual fun connect() {
+        if (socket != null) return
+
+        socket?.off()
+        socket?.disconnect()
+
         val opts = IO.Options.builder()
             .setAuth(mapOf("token" to (tokenProvider() ?: "")))
             .setTransports(arrayOf("websocket", "polling"))
@@ -30,7 +35,12 @@ actual class ChatSocketService actual constructor(
 
         socket = IO.socket("$serverUrl/chatbot", opts).apply {
             on("chat:token") { args ->
-                val token = args.firstOrNull()?.toString() ?: return@on
+                val raw = args.firstOrNull()
+                val token = when (raw) {
+                    is JSONObject -> raw.optString("token")
+                    else -> raw?.toString().orEmpty()
+                }
+                if (token.isBlank()) return@on
                 tokenCallback?.invoke(token)
             }
             on("chat:done") { _ ->
@@ -46,6 +56,7 @@ actual class ChatSocketService actual constructor(
     }
 
     actual fun disconnect() {
+        socket?.off()
         socket?.disconnect()
         socket = null
     }
@@ -59,7 +70,7 @@ actual class ChatSocketService actual constructor(
                 })
             }
         }
-        val payload = JSONObject().apply { put("history", historyArray) }
+        val payload = JSONObject().apply { put("messages", historyArray) }
         socket?.emit("chat:stream", payload)
     }
 

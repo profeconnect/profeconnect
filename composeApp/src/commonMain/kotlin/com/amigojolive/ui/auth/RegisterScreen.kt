@@ -18,10 +18,12 @@ fun RegisterScreenContent(viewModel: AuthViewModel) {
     val navigator   = LocalNavigator.currentOrThrow
     val state       by viewModel.state.collectAsState()
     val snackbar    = remember { SnackbarHostState() }
-    var email       by remember { mutableStateOf("") }
+    var institutionalEmail by remember { mutableStateOf("") }
     var password    by remember { mutableStateOf("") }
-    var fullName    by remember { mutableStateOf("") }
+    var firstName   by remember { mutableStateOf("") }
+    var lastName    by remember { mutableStateOf("") }
     var area        by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
 
     val sent = state.navigateTo == NavigationTarget.REGISTER_SUCCESS
 
@@ -57,18 +59,31 @@ fun RegisterScreenContent(viewModel: AuthViewModel) {
         ) {
             Text("Solicitar acceso", style = MaterialTheme.typography.headlineMedium)
             Spacer(Modifier.height(24.dp))
-            AmigojoTextField(fullName,  { fullName = it },  "Nombre completo")
+            AmigojoTextField(firstName, { firstName = it }, "Nombres")
             Spacer(Modifier.height(12.dp))
-            AmigojoTextField(area,      { area = it },      "Área / departamento")
+            AmigojoTextField(lastName, { lastName = it }, "Apellidos")
             Spacer(Modifier.height(12.dp))
-            AmigojoTextField(email,     { email = it },     "Correo electrónico")
+            AmigojoTextField(area, { area = it }, "Área / departamento")
             Spacer(Modifier.height(12.dp))
-            AmigojoTextField(password,  { password = it },  "Contraseña", isPassword = true)
+            AmigojoTextField(description, { description = it }, "Descripción", singleLine = false)
+            Spacer(Modifier.height(12.dp))
+            AmigojoTextField(institutionalEmail, { institutionalEmail = it }, "Correo institucional")
+            Spacer(Modifier.height(12.dp))
+            AmigojoTextField(password, { password = it }, "Contraseña", isPassword = true)
             Spacer(Modifier.height(24.dp))
             AmigojoButton(
                 text = "Enviar solicitud",
                 loading = state.loading,
-                onClick = { viewModel.registerRequest(email, password, fullName, area) },
+                onClick = {
+                    viewModel.registerRequest(
+                        institutionalEmail = institutionalEmail,
+                        password = password,
+                        firstName = firstName,
+                        lastName = lastName,
+                        area = area,
+                        description = description,
+                    )
+                },
             )
             Spacer(Modifier.height(12.dp))
             TextButton(onClick = { navigator.pop() }) { Text("Cancelar") }
