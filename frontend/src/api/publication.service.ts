@@ -15,12 +15,7 @@ export async function createPublication(
 ): Promise<Publication> {
   const response = await apiClient.post<ApiResponse<Publication>>(
     '/publications',
-    payload,
-    {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    }
+    payload
   );
   return response.data.data;
 }
