@@ -59,11 +59,11 @@ export default function CreatePublicationModal({
       formData.append('content', content.trim());
       formData.append('isAnonymous', isAnonymous ? 'true' : 'false');
       
-      // Tags (sending as JSON string for the backend to parse)
+      // Tags
       const tagsArray = tags.split(',').map(t => t.trim()).filter(t => t !== '');
-      if (tagsArray.length > 0) {
-        formData.append('tags', JSON.stringify(tagsArray));
-      }
+      tagsArray.forEach(tag => {
+        formData.append('tags', tag);
+      });
 
       // Files
       files.forEach(file => {
