@@ -157,7 +157,8 @@ export default function PublicationCard({ pub, onDelete }: PublicationCardProps)
               <div className="flex flex-col gap-2">
                 {pub.attachments.map((file) => {
                   const baseUrl = import.meta.env.VITE_API_URL?.replace("/api/v1", "") || "https://amigojolive-production.up.railway.app";
-                  const fileUrl = `${baseUrl}/uploads/${file.filename}`;
+                  const folder = file.type === "IMAGE" ? "images" : "documents";
+                  const fileUrl = `${baseUrl}/public/${folder}/${file.filename}`;
                   
                   return (
                     <a
