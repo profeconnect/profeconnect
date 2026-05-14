@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const prisma = require("../../lib/prisma");
+const { mapCommentToResponse } = require("../comments/comment.service");
 
 const PUBLIC_DIR = path.resolve(__dirname, "../../../public");
 
@@ -16,6 +17,7 @@ function mapPostToResponse(post) {
     createdAt: post.createdAt,
     updatedAt: post.updatedAt,
     attachments: post.attachments,
+    comments: (post.comments ?? []).map(mapCommentToResponse),
     tags: post.tags ?? [],
     author: shouldHideAuthor
       ? {
@@ -69,6 +71,18 @@ async function createPublication({ title, content, isAnonymous, authorId, files 
         },
       },
       attachments: true,
+      comments: {
+        orderBy: {
+          createdAt: "asc",
+        },
+        include: {
+          author: {
+            include: {
+              role: true,
+            },
+          },
+        },
+      },
       tags: true,
     },
   });
@@ -95,6 +109,18 @@ async function getPublicationFeed({ tagIds } = {}) {
         },
       },
       attachments: true,
+      comments: {
+        orderBy: {
+          createdAt: "asc",
+        },
+        include: {
+          author: {
+            include: {
+              role: true,
+            },
+          },
+        },
+      },
       tags: true,
     },
   });
@@ -112,6 +138,18 @@ async function getPublicationById(id) {
         },
       },
       attachments: true,
+      comments: {
+        orderBy: {
+          createdAt: "asc",
+        },
+        include: {
+          author: {
+            include: {
+              role: true,
+            },
+          },
+        },
+      },
       tags: true,
     },
   });
@@ -169,6 +207,18 @@ async function updatePublication(id, userId, data) {
         },
       },
       attachments: true,
+      comments: {
+        orderBy: {
+          createdAt: "asc",
+        },
+        include: {
+          author: {
+            include: {
+              role: true,
+            },
+          },
+        },
+      },
       tags: true,
     },
   });

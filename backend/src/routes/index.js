@@ -7,6 +7,7 @@ const userRoutes = require("../modules/users/user.routes");
 const profileRoutes = require("../modules/profiles/profile.routes");
 const chatbotRoutes = require("../modules/chatbot/chatbot.routes");
 const publicationRoutes = require("../modules/publications/publication.routes");
+const commentRoutes = require("../modules/comments/comment.routes");
 
 const categoryRoutes = require("../modules/category/category.routes");
 const prisma = require("../lib/prisma");
@@ -31,6 +32,7 @@ router.use("/admin/registration-requests", registrationRequestRoutes);
 router.use("/admin/users", userRoutes);
 router.use("/profiles", profileRoutes);
 router.use("/publications", publicationRoutes);
+router.use("/comments", commentRoutes);
 
 // Chatbot
 router.use("/chatbot", chatbotRoutes);
