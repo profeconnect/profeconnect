@@ -28,6 +28,18 @@ async function getPublicationFeed(req, res, next) {
   }
 }
 
+async function getPublicationById(req, res, next) {
+  try {
+    const publication = await publicationService.getPublicationById(Number(req.params.id));
+
+    return res.status(200).json(
+      new ApiResponse(true, 200, "Publicación obtenida correctamente", publication)
+    );
+  } catch (error) {
+    next(error);
+  }
+}
+
 async function updatePublication(req, res, next) {
   try {
     const publication = await publicationService.updatePublication(
@@ -58,6 +70,7 @@ async function deletePublication(req, res, next) {
 module.exports = {
   createPublication,
   getPublicationFeed,
+  getPublicationById,
   updatePublication,
   deletePublication,
 };

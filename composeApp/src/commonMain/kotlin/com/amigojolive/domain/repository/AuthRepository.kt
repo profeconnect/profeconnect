@@ -9,8 +9,8 @@ class AuthRepository(
     private val apiService: ApiService,
     private val tokenStorage: TokenStorage,
 ) {
-    suspend fun login(email: String, password: String): ApiResult<UserSummary> {
-        val result = apiService.login(LoginRequest(email, password))
+    suspend fun login(institutionalEmail: String, password: String): ApiResult<UserSummary> {
+        val result = apiService.login(LoginRequest(institutionalEmail, password))
         if (result is ApiResult.Success) {
             tokenStorage.saveToken(result.data.token)
             return ApiResult.Success(result.data.user)
@@ -19,9 +19,23 @@ class AuthRepository(
     }
 
     suspend fun registerRequest(
-        email: String, password: String, fullName: String, area: String,
-    ): ApiResult<Unit> =
-        apiService.registerRequest(RegisterRequest(email, password, fullName, area))
+        institutionalEmail: String,
+        password: String,
+        firstName: String,
+        lastName: String,
+        area: String?,
+        description: String?,
+    ): ApiResult<RegistrationRequest> =
+        apiService.registerRequest(
+            RegisterRequest(
+                institutionalEmail = institutionalEmail,
+                password = password,
+                firstName = firstName,
+                lastName = lastName,
+                area = area,
+                description = description,
+            )
+        )
 
     suspend fun getMe(): ApiResult<UserSummary> = apiService.getMe()
 

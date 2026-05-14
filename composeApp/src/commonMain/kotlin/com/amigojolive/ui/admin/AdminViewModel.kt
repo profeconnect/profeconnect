@@ -38,16 +38,17 @@ class AdminViewModel(
         }
     }
 
-    fun toggleUserActive(userId: Int, current: Boolean) {
+    fun toggleUserActive(userId: Int, currentStatus: String) {
+        val nextStatus = if (currentStatus == "ACTIVO") "INACTIVO" else "ACTIVO"
         screenModelScope.launch {
-            when (val r = adminRepo.setUserActive(userId, !current)) {
+            when (val r = adminRepo.updateUserStatus(userId, nextStatus)) {
                 is ApiResult.Success -> {
                     _state.update { state ->
                         state.copy(
                             users = state.users.map {
-                                if (it.id == userId) it.copy(isActive = !current) else it
+                                if (it.id == userId) r.data else it
                             },
-                            successMessage = if (!current) "Usuario activado" else "Usuario desactivado",
+                            successMessage = if (nextStatus == "ACTIVO") "Usuario activado" else "Usuario desactivado",
                         )
                     }
                 }

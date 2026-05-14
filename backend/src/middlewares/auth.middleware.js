@@ -33,7 +33,7 @@ async function authMiddleware(req, res, next) {
     }
 
     if (!user.role || !user.role.active) {
-      return res.status(403).json(new ApiResponse(false, 401, "Rol inválido o inactivo"));
+      return res.status(403).json(new ApiResponse(false, 403, "Rol inválido o inactivo"));
     }
 
     req.user = {
@@ -46,7 +46,11 @@ async function authMiddleware(req, res, next) {
 
     next();
   } catch (error) {
-    return res.status(401).json(new ApiResponse(false, 401, "Token inválido o expirado, vuelva a ingresar porfavor"));
+    if (error?.name === "JsonWebTokenError" || error?.name === "TokenExpiredError") {
+      return res.status(401).json(new ApiResponse(false, 401, "Token inválido o expirado, vuelva a ingresar porfavor"));
+    }
+
+    return next(error);
   }
 }
 

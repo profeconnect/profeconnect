@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 /**
  * Mensaje que se envía al socket en el evento `chat:stream`.
- * El servidor espera { history: [{ role, content }] }
+ * El servidor espera { messages: [{ role, content }] }
  */
 @Serializable
 data class ChatMessageRequest(

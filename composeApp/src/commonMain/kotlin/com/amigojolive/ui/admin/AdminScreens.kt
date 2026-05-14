@@ -123,7 +123,7 @@ fun AdminUsersContent(viewModel: AdminViewModel) {
         LazyColumn(modifier = Modifier.fillMaxSize().padding(padding),
             contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items(state.users, key = { it.id }) { user ->
-                UserCard(user, onToggleActive = { viewModel.toggleUserActive(user.id, user.isActive) })
+                UserCard(user, onToggleActive = { viewModel.toggleUserActive(user.id, user.status) })
             }
         }
     }
@@ -137,10 +137,10 @@ private fun UserCard(user: AdminUser, onToggleActive: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(Modifier.weight(1f)) {
-                Text(user.profile?.fullName ?: user.email, style = MaterialTheme.typography.titleSmall)
+                Text(user.fullName, style = MaterialTheme.typography.titleSmall)
                 Text(user.email, style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text(user.role, style = MaterialTheme.typography.labelSmall)
+                Text(user.role ?: "Sin rol", style = MaterialTheme.typography.labelSmall)
             }
             Switch(checked = user.isActive, onCheckedChange = { onToggleActive() })
         }
@@ -196,7 +196,7 @@ private fun RequestCard(req: RegistrationRequest, onApprove: () -> Unit, onRejec
             Text(req.fullName, style = MaterialTheme.typography.titleSmall)
             Text(req.email,    style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text("Área: ${req.area}", style = MaterialTheme.typography.bodySmall)
+            Text("Área: ${req.area ?: "Sin área"}", style = MaterialTheme.typography.bodySmall)
             Spacer(Modifier.height(12.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(onClick = onReject,

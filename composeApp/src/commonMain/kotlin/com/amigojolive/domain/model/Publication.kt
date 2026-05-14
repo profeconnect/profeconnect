@@ -1,6 +1,5 @@
 package com.amigojolive.domain.model
 
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -16,8 +15,8 @@ data class Publication(
     val title: String,
     val content: String,
     val isAnonymous: Boolean = false,
-    val status: String = "published",
-    val attachments: List<String> = emptyList(),
+    val status: String = "PUBLISHED",
+    val attachments: List<PublicationAttachment> = emptyList(),
     val tags: List<Category> = emptyList(),
     val author: PublicationAuthor? = null,
     val createdAt: String = "",
@@ -26,15 +25,28 @@ data class Publication(
 
 @Serializable
 data class PublicationAuthor(
-    val id: Int,
-    val role: String,
-    val profile: ProfileRef? = null,
-)
+    val id: Int? = null,
+    val firstName: String? = null,
+    val lastName: String? = null,
+    val institutionalEmail: String? = null,
+    val role: String? = null,
+) {
+    val displayName: String
+        get() = listOf(firstName, lastName)
+            .filterNotNull()
+            .filter { it.isNotBlank() }
+            .joinToString(" ")
+            .ifBlank { role ?: institutionalEmail ?: "Docente" }
+}
 
 @Serializable
-data class ProfileRef(
-    val fullName: String?,
-    val photoUrl: String?,
+data class PublicationAttachment(
+    val filename: String,
+    val originalName: String,
+    val mimeType: String,
+    val path: String,
+    val size: Int,
+    val type: String,
 )
 
 /**

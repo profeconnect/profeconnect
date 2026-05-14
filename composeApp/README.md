@@ -8,21 +8,29 @@ Cliente KMP con Kotlin, Jetpack Compose y Material Design 3 para las superficies
 |---|---|
 | JDK | 17 |
 | Android Studio | Hedgehog (2023.1.1+) |
-| Android SDK | API 24 → 35 |
+| Android SDK | API 24 → 34 |
 | Node.js | 20 (para webpack/jsMain) |
 | Gradle | 8.10.2 (el wrapper lo descarga) |
 
 ## Configuración inicial
 
+Importa en Android Studio la carpeta `composeApp/` directamente. No abras la raíz del monorepo si lo que quieres es sincronizar y ejecutar el cliente Android/KMP, porque el proyecto Gradle vive dentro de `composeApp/`.
+
 ```bash
-# 1. Inicializar el Gradle wrapper (solo una vez)
+# 1. Entrar al proyecto KMP
 cd composeApp
-gradle wrapper --gradle-version=8.10.2
 
 # 2. Configurar la ruta del SDK de Android
 echo "sdk.dir=$HOME/Library/Android/sdk" > local.properties
 # En Windows: sdk.dir=C:\\Users\\<user>\\AppData\\Local\\Android\\Sdk
 ```
+
+En Android Studio verifica además:
+
+1. `File > Open` sobre `composeApp/`
+2. Gradle JDK = `17`
+3. Android SDK Platform = `34`
+4. Sync de Gradle exitoso antes de ejecutar `MainActivity`
 
 ## Compilar y ejecutar
 

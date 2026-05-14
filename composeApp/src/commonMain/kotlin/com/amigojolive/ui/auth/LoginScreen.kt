@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.amigojolive.navigation.AccessDeniedScreen
 import com.amigojolive.navigation.AdminHomeScreen
 import com.amigojolive.navigation.RegisterScreen
 import com.amigojolive.navigation.TeacherHomeScreen
@@ -27,6 +28,7 @@ fun LoginScreenContent(viewModel: AuthViewModel) {
         when (state.navigateTo) {
             NavigationTarget.ADMIN_HOME   -> { viewModel.clearNavigationTarget(); navigator.replaceAll(AdminHomeScreen) }
             NavigationTarget.TEACHER_HOME -> { viewModel.clearNavigationTarget(); navigator.replaceAll(TeacherHomeScreen) }
+            NavigationTarget.ACCESS_DENIED -> { viewModel.clearNavigationTarget(); navigator.replaceAll(AccessDeniedScreen) }
             else -> Unit
         }
     }

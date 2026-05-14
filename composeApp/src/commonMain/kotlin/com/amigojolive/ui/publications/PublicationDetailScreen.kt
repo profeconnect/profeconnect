@@ -84,7 +84,7 @@ fun PublicationDetailContent(
                         tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(Modifier.width(4.dp))
                     val authorName = if (pub.isAnonymous) "Anónimo"
-                    else pub.author?.profile?.fullName ?: pub.author?.role ?: "Docente"
+                    else pub.author?.displayName ?: "Docente"
                     Text(authorName, style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(Modifier.width(12.dp))
@@ -98,11 +98,14 @@ fun PublicationDetailContent(
                 if (pub.attachments.isNotEmpty()) {
                     Spacer(Modifier.height(16.dp))
                     Text("Archivos adjuntos", style = MaterialTheme.typography.titleSmall)
-                    pub.attachments.forEach { url ->
+                    pub.attachments.forEach { attachment ->
                         TextButton(onClick = { /* abrir URL */ }) {
                             Icon(Icons.Default.AttachFile, null, modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(4.dp))
-                            Text(url.substringAfterLast("/"), style = MaterialTheme.typography.bodySmall)
+                            Text(
+                                attachment.originalName,
+                                style = MaterialTheme.typography.bodySmall
+                            )
                         }
                     }
                 }

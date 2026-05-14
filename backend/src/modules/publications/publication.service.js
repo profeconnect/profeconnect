@@ -109,7 +109,12 @@ async function getPublicationById(id) {
     },
   });
 
-  if (!post || post.deletedAt) return null;
+  if (!post || post.deletedAt) {
+    const error = new Error("Publicación no encontrada");
+    error.statusCode = 404;
+    throw error;
+  }
+
   return mapPostToResponse(post);
 }
 

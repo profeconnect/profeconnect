@@ -3,14 +3,15 @@ package com.amigojolive.domain.model
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-/** Payload enviado a POST /auth/login */
+/** Payload enviado a POST /auth/login. */
 @Serializable
 data class LoginRequest(
-    val email: String,
+    @SerialName("institutionalEmail")
+    val institutionalEmail: String,
     val password: String,
 )
 
-/** Respuesta de POST /auth/login → ApiResponse.data */
+/** Respuesta de POST /auth/login → ApiResponse.data. */
 @Serializable
 data class AuthData(
     val token: String,
@@ -18,30 +19,62 @@ data class AuthData(
 )
 
 /**
- * Respuesta de GET /auth/me → ApiResponse.data
- * También se usa como proyección embebida en otras respuestas.
+ * Usuario autenticado o hidratado desde /auth/me.
+ * El backend devuelve institutionalEmail, firstName, lastName, status y role.
  */
 @Serializable
 data class UserSummary(
     val id: Int,
-    val email: String,
-    val role: String? = null,          // "docente" | "admin" | "moderador"
-    val isActive: Boolean,
+    @SerialName("institutionalEmail")
+    val institutionalEmail: String,
+    val firstName: String,
+    val lastName: String,
+    val role: String? = null,
+    val status: String? = null,
     val profile: ProfileSummary? = null,
-)
+) {
+    val email: String
+        get() = institutionalEmail
 
+    val isActive: Boolean
+        get() = status == "ACTIVO"
+
+    val fullName: String
+        get() = listOf(firstName, lastName)
+            .filter { it.isNotBlank() }
+            .joinToString(" ")
+            .ifBlank { institutionalEmail }
+}
+
+/** Perfil docente anidado en /auth/me, /profiles/me y usuarios admin. */
 @Serializable
 data class ProfileSummary(
-    val id: Int,
-    val fullName: String?,
-    val area: String?,
-    val description: String?,
-    val photoUrl: String?,
+    val id: Int? = null,
+    val userId: Int? = null,
+    val area: String? = null,
+    val description: String? = null,
+    val photoUrl: String? = null,
+    val createdAt: String? = null,
+    val updatedAt: String? = null,
 )
 
+/** Respuesta de /profiles/me. */
 @Serializable
-data class ApiResponse<T>(
-    val status: String? = null,
-    val data: T? = null,
-    val message: String? = null
-)
+data class ProfileResponse(
+    val id: Int,
+    @SerialName("institutionalEmail")
+    val institutionalEmail: String,
+    val firstName: String,
+    val lastName: String,
+    val role: String? = null,
+    val profile: ProfileSummary? = null,
+) {
+    val email: String
+        get() = institutionalEmail
+
+    val fullName: String
+        get() = listOf(firstName, lastName)
+            .filter { it.isNotBlank() }
+            .joinToString(" ")
+            .ifBlank { institutionalEmail }
+}

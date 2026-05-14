@@ -8,58 +8,63 @@ import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.http.*
 
-/** URL base de la API. Debe apuntar al backend en cada entorno. */
-const val BASE_URL = "https://amigojolive-production.up.railway.app/api/v1"
-
 /** Servicio de red: envuelve llamadas Ktor y desenvuelve ApiResponse. */
 class ApiService(private val client: HttpClient) {
 
     // ─── Auth ──────────────────────────────────────────────────────────────
 
     suspend fun login(request: LoginRequest): ApiResult<AuthData> = safeCall {
-        client.post("$BASE_URL/auth/login") {
+        client.post("${NetworkConfig.apiBaseUrl}/auth/login") {
             contentType(ContentType.Application.Json)
             setBody(request)
         }.body<ApiResponse<AuthData>>().unwrap()
     }
 
-    suspend fun registerRequest(request: RegisterRequest): ApiResult<Unit> = safeCall {
-        client.post("$BASE_URL/auth/register-request") {
+    suspend fun registerRequest(request: RegisterRequest): ApiResult<RegistrationRequest> = safeCall {
+        client.post("${NetworkConfig.apiBaseUrl}/auth/register-request") {
             contentType(ContentType.Application.Json)
             setBody(request)
-        }.body<ApiResponse<Unit>>().unwrap()
+        }.body<ApiResponse<RegistrationRequest>>().unwrap()
     }
 
     suspend fun getMe(): ApiResult<UserSummary> = safeCall {
-        client.get("$BASE_URL/auth/me").body<ApiResponse<UserSummary>>().unwrap()
+        client.get("${NetworkConfig.apiBaseUrl}/auth/me")
+            .body<ApiResponse<UserSummary>>()
+            .unwrap()
     }
 
     // ─── Perfil ─────────────────────────────────────────────────────────────
 
-    suspend fun getProfile(): ApiResult<ProfileSummary> = safeCall {
-        client.get("$BASE_URL/profiles/me").body<ApiResponse<ProfileSummary>>().unwrap()
+    suspend fun getProfile(): ApiResult<ProfileResponse> = safeCall {
+        client.get("${NetworkConfig.apiBaseUrl}/profiles/me")
+            .body<ApiResponse<ProfileResponse>>()
+            .unwrap()
     }
 
-    suspend fun updateProfile(request: UpdateProfileRequest): ApiResult<ProfileSummary> = safeCall {
-        client.patch("$BASE_URL/profiles/me") {
+    suspend fun updateProfile(request: UpdateProfileRequest): ApiResult<ProfileResponse> = safeCall {
+        client.patch("${NetworkConfig.apiBaseUrl}/profiles/me") {
             contentType(ContentType.Application.Json)
             setBody(request)
-        }.body<ApiResponse<ProfileSummary>>().unwrap()
+        }.body<ApiResponse<ProfileResponse>>().unwrap()
     }
 
     // ─── Publicaciones ───────────────────────────────────────────────────────
 
     suspend fun getPublications(): ApiResult<List<Publication>> = safeCall {
-        client.get("$BASE_URL/publications").body<ApiResponse<List<Publication>>>().unwrap()
+        client.get("${NetworkConfig.apiBaseUrl}/publications")
+            .body<ApiResponse<List<Publication>>>()
+            .unwrap()
     }
 
     suspend fun getPublication(id: Int): ApiResult<Publication> = safeCall {
-        client.get("$BASE_URL/publications/$id").body<ApiResponse<Publication>>().unwrap()
+        client.get("${NetworkConfig.apiBaseUrl}/publications/$id")
+            .body<ApiResponse<Publication>>()
+            .unwrap()
     }
 
     suspend fun createPublication(request: PublicationRequest): ApiResult<Publication> = safeCall {
         val response = client.submitFormWithBinaryData(
-            url = "$BASE_URL/publications",
+            url = "${NetworkConfig.apiBaseUrl}/publications",
             formData = buildFormData(request),
         ) { method = HttpMethod.Post }
         response.body<ApiResponse<Publication>>().unwrap()
@@ -67,68 +72,75 @@ class ApiService(private val client: HttpClient) {
 
     suspend fun updatePublication(id: Int, request: PublicationRequest): ApiResult<Publication> = safeCall {
         val response = client.submitFormWithBinaryData(
-            url = "$BASE_URL/publications/$id",
+            url = "${NetworkConfig.apiBaseUrl}/publications/$id",
             formData = buildFormData(request),
         ) { method = HttpMethod.Put }
         response.body<ApiResponse<Publication>>().unwrap()
     }
 
     suspend fun deletePublication(id: Int): ApiResult<Unit> = safeCall {
-        client.delete("$BASE_URL/publications/$id").body<ApiResponse<Unit>>().unwrap()
+        client.delete("${NetworkConfig.apiBaseUrl}/publications/$id")
+            .body<ApiResponse<Unit>>()
+            .unwrap()
     }
 
     // ─── Categorías ──────────────────────────────────────────────────────────
 
     suspend fun getCategories(): ApiResult<List<Category>> = safeCall {
-        client.get("$BASE_URL/categories").body<ApiResponse<List<Category>>>().unwrap()
+        client.get("${NetworkConfig.apiBaseUrl}/categories")
+            .body<ApiResponse<List<Category>>>()
+            .unwrap()
     }
 
     suspend fun createCategory(request: CategoryRequest): ApiResult<Category> = safeCall {
-        client.post("$BASE_URL/categories") {
+        client.post("${NetworkConfig.apiBaseUrl}/categories") {
             contentType(ContentType.Application.Json)
             setBody(request)
         }.body<ApiResponse<Category>>().unwrap()
     }
 
     suspend fun updateCategory(id: Int, request: CategoryRequest): ApiResult<Category> = safeCall {
-        client.put("$BASE_URL/categories/$id") {
+        client.put("${NetworkConfig.apiBaseUrl}/categories/$id") {
             contentType(ContentType.Application.Json)
             setBody(request)
         }.body<ApiResponse<Category>>().unwrap()
     }
 
     suspend fun deleteCategory(id: Int): ApiResult<Unit> = safeCall {
-        client.delete("$BASE_URL/categories/$id").body<ApiResponse<Unit>>().unwrap()
+        client.delete("${NetworkConfig.apiBaseUrl}/categories/$id")
+        ApiResult.Success(Unit)
     }
 
     // ─── Admin usuarios ─────────────────────────────────────────────────────
 
     suspend fun getUsers(): ApiResult<List<AdminUser>> = safeCall {
-        client.get("$BASE_URL/admin/users").body<ApiResponse<List<AdminUser>>>().unwrap()
+        client.get("${NetworkConfig.apiBaseUrl}/admin/users")
+            .body<ApiResponse<List<AdminUser>>>()
+            .unwrap()
     }
 
-    suspend fun updateUserStatus(userId: Int, isActive: Boolean): ApiResult<Unit> = safeCall {
-        client.patch("$BASE_URL/admin/users/$userId/status") {
+    suspend fun updateUserStatus(userId: Int, status: String): ApiResult<AdminUser> = safeCall {
+        client.patch("${NetworkConfig.apiBaseUrl}/admin/users/$userId/status") {
             contentType(ContentType.Application.Json)
-            setBody(UpdateUserStatusRequest(isActive))
-        }.body<ApiResponse<Unit>>().unwrap()
+            setBody(UpdateUserStatusRequest(status))
+        }.body<ApiResponse<AdminUser>>().unwrap()
     }
 
     // ─── Admin solicitudes ───────────────────────────────────────────────────
 
     suspend fun getRegistrationRequests(): ApiResult<List<RegistrationRequest>> = safeCall {
-        client.get("$BASE_URL/admin/registration-requests")
+        client.get("${NetworkConfig.apiBaseUrl}/admin/registration-requests")
             .body<ApiResponse<List<RegistrationRequest>>>().unwrap()
     }
 
-    suspend fun approveRequest(id: Int): ApiResult<Unit> = safeCall {
-        client.patch("$BASE_URL/admin/registration-requests/$id/approve")
-            .body<ApiResponse<Unit>>().unwrap()
+    suspend fun approveRequest(id: Int): ApiResult<UserSummary> = safeCall {
+        client.patch("${NetworkConfig.apiBaseUrl}/admin/registration-requests/$id/approve")
+            .body<ApiResponse<UserSummary>>()
+            .unwrap()
     }
 
     suspend fun rejectRequest(id: Int): ApiResult<Unit> = safeCall {
-        // El controlador puede responder 204 sin cuerpo; toleramos body nulo.
-        client.patch("$BASE_URL/admin/registration-requests/$id/reject")
+        client.patch("${NetworkConfig.apiBaseUrl}/admin/registration-requests/$id/reject")
         ApiResult.Success(Unit)
     }
 
@@ -138,7 +150,7 @@ class ApiService(private val client: HttpClient) {
         append("title", req.title)
         append("content", req.content)
         append("isAnonymous", req.isAnonymous.toString())
-        req.tagIds.forEach { tagId -> append("tags[]", tagId.toString()) }
+        req.tagIds.forEach { tagId -> append("tags", tagId.toString()) }
         req.files.forEach { file ->
             append(
                 key = "files",

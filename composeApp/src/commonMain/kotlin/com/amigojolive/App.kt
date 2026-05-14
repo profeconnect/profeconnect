@@ -6,7 +6,7 @@ import androidx.compose.runtime.compositionLocalOf
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.transitions.SlideTransition
 import com.amigojolive.core.network.ApiService
-import com.amigojolive.core.network.BASE_URL
+import com.amigojolive.core.network.NetworkConfig
 import com.amigojolive.core.network.createHttpClient
 import com.amigojolive.core.session.TokenStorage
 import com.amigojolive.core.socket.ChatSocketService
@@ -28,7 +28,7 @@ fun App(tokenStorage: TokenStorage) {
     val catRepo       = CategoryRepository(apiService)
     val adminRepo     = AdminRepository(apiService)
     val socketService = ChatSocketService(
-        serverUrl     = BASE_URL.substringBeforeLast("/api"),
+        serverUrl     = NetworkConfig.socketBaseUrl,
         tokenProvider = { tokenStorage.getToken() },
     )
 

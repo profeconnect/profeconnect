@@ -4,7 +4,7 @@ import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import com.amigojolive.core.network.ApiResult
 import com.amigojolive.core.network.ApiService
-import com.amigojolive.domain.model.ProfileSummary
+import com.amigojolive.domain.model.ProfileResponse
 import com.amigojolive.domain.model.UpdateProfileRequest
 import com.amigojolive.domain.model.UserSummary
 import kotlinx.coroutines.flow.*
@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 
 data class ProfileState(
     val loading: Boolean = false,
-    val profile: ProfileSummary? = null,
+    val profile: ProfileResponse? = null,
     val currentUser: UserSummary? = null,
     val error: String? = null,
     val successMessage: String? = null,
@@ -39,10 +39,14 @@ class ProfileViewModel(
     }
 
     fun update(fullName: String, area: String, description: String) {
+        val parts = fullName.trim().split("\\s+".toRegex()).filter { it.isNotBlank() }
+        val firstName = parts.firstOrNull()
+        val lastName = parts.drop(1).joinToString(" ").ifBlank { null }
         screenModelScope.launch {
             _state.update { it.copy(loading = true) }
             val request = UpdateProfileRequest(
-                fullName    = fullName.trim().takeIf { it.isNotBlank() },
+                firstName = firstName,
+                lastName = lastName,
                 area        = area.trim().takeIf { it.isNotBlank() },
                 description = description.trim().takeIf { it.isNotBlank() },
             )

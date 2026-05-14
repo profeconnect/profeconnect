@@ -49,6 +49,14 @@ object RegisterScreen : Screen {
     }
 }
 
+object AccessDeniedScreen : Screen {
+    @Composable
+    override fun Content() {
+        val deps = LocalAppDeps.current
+        AccessDeniedContent(onLogout = { deps.authRepo.logout() })
+    }
+}
+
 // ── Docente ───────────────────────────────────────────────────────────────────
 
 object TeacherHomeScreen : Screen {
@@ -56,7 +64,11 @@ object TeacherHomeScreen : Screen {
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         val deps = LocalAppDeps.current
-        val user = SessionStore.currentUser.collectAsState().value ?: return
+        val user = SessionStore.currentUser.collectAsState().value
+        if (user == null) {
+            SessionRequiredContent()
+            return
+        }
         val vm   = rememberScreenModel { PublicationsViewModel(deps.pubRepo, deps.catRepo, user.id) }
         TeacherHomeContent(
             publicationsViewModel = vm,
@@ -65,6 +77,7 @@ object TeacherHomeScreen : Screen {
             onLogout = {
                 deps.authRepo.logout()
                 SessionStore.clear()
+                navigator.replaceAll(LoginScreen)
             }
         )
     }
@@ -74,7 +87,11 @@ object FeedScreen : Screen {
     @Composable
     override fun Content() {
         val deps = LocalAppDeps.current
-        val user = SessionStore.currentUser.collectAsState().value ?: return
+        val user = SessionStore.currentUser.collectAsState().value
+        if (user == null) {
+            SessionRequiredContent()
+            return
+        }
         val vm   = rememberScreenModel { PublicationsViewModel(deps.pubRepo, deps.catRepo, user.id) }
         FeedContent(vm)
     }
@@ -84,7 +101,11 @@ object MyPublicationsScreen : Screen {
     @Composable
     override fun Content() {
         val deps = LocalAppDeps.current
-        val user = SessionStore.currentUser.collectAsState().value ?: return
+        val user = SessionStore.currentUser.collectAsState().value
+        if (user == null) {
+            SessionRequiredContent()
+            return
+        }
         val vm   = rememberScreenModel { PublicationsViewModel(deps.pubRepo, deps.catRepo, user.id) }
         MyPublicationsContent(vm)
     }
@@ -94,7 +115,11 @@ data class PublicationDetailScreen(val publicationId: Int) : Screen {
     @Composable
     override fun Content() {
         val deps = LocalAppDeps.current
-        val user = SessionStore.currentUser.collectAsState().value ?: return
+        val user = SessionStore.currentUser.collectAsState().value
+        if (user == null) {
+            SessionRequiredContent()
+            return
+        }
         val vm   = rememberScreenModel { PublicationsViewModel(deps.pubRepo, deps.catRepo, user.id) }
         PublicationDetailContent(publicationId, vm, user.id)
     }
@@ -104,7 +129,11 @@ data class CreateEditPublicationScreen(val publicationId: Int? = null) : Screen 
     @Composable
     override fun Content() {
         val deps = LocalAppDeps.current
-        val user = SessionStore.currentUser.collectAsState().value ?: return
+        val user = SessionStore.currentUser.collectAsState().value
+        if (user == null) {
+            SessionRequiredContent()
+            return
+        }
         val vm   = rememberScreenModel { PublicationsViewModel(deps.pubRepo, deps.catRepo, user.id) }
         CreateEditPublicationContent(publicationId, vm)
     }
@@ -121,7 +150,11 @@ object ProfileScreen : Screen {
     @Composable
     override fun Content() {
         val deps = LocalAppDeps.current
-        val user = SessionStore.currentUser.collectAsState().value ?: return
+        val user = SessionStore.currentUser.collectAsState().value
+        if (user == null) {
+            SessionRequiredContent()
+            return
+        }
         val vm   = rememberScreenModel { ProfileViewModel(deps.apiService, user) }
         ProfileContent(vm)
     }
@@ -141,13 +174,25 @@ object ChatbotScreen : Screen {
 object AdminHomeScreen : Screen {
     @Composable
     override fun Content() {
+        val navigator = LocalNavigator.currentOrThrow
         val deps = LocalAppDeps.current
         val user = SessionStore.currentUser.collectAsState().value
-        if (user?.role != "admin") return           // guarda de rol
+        if (user == null) {
+            SessionRequiredContent()
+            return
+        }
+        if (user.role != "admin") {
+            AccessDeniedContent(onLogout = {
+                deps.authRepo.logout()
+                SessionStore.clear()
+            })
+            return
+        }
         val vm   = rememberScreenModel { AdminViewModel(deps.adminRepo, deps.catRepo) }
         AdminHomeContent(vm, onLogout = {
             deps.authRepo.logout()
             SessionStore.clear()
+            navigator.replaceAll(LoginScreen)
         })
     }
 }
@@ -155,8 +200,19 @@ object AdminHomeScreen : Screen {
 object AdminUsersScreen : Screen {
     @Composable
     override fun Content() {
-        if (SessionStore.currentUser.value?.role != "admin") return
         val deps = LocalAppDeps.current
+        val user = SessionStore.currentUser.collectAsState().value
+        if (user == null) {
+            SessionRequiredContent()
+            return
+        }
+        if (user.role != "admin") {
+            AccessDeniedContent(onLogout = {
+                deps.authRepo.logout()
+                SessionStore.clear()
+            })
+            return
+        }
         val vm   = rememberScreenModel { AdminViewModel(deps.adminRepo, deps.catRepo) }
         AdminUsersContent(vm)
     }
@@ -165,8 +221,19 @@ object AdminUsersScreen : Screen {
 object AdminRequestsScreen : Screen {
     @Composable
     override fun Content() {
-        if (SessionStore.currentUser.value?.role != "admin") return
         val deps = LocalAppDeps.current
+        val user = SessionStore.currentUser.collectAsState().value
+        if (user == null) {
+            SessionRequiredContent()
+            return
+        }
+        if (user.role != "admin") {
+            AccessDeniedContent(onLogout = {
+                deps.authRepo.logout()
+                SessionStore.clear()
+            })
+            return
+        }
         val vm   = rememberScreenModel { AdminViewModel(deps.adminRepo, deps.catRepo) }
         AdminRequestsContent(vm)
     }
@@ -175,9 +242,28 @@ object AdminRequestsScreen : Screen {
 object AdminCategoriesScreen : Screen {
     @Composable
     override fun Content() {
-        if (SessionStore.currentUser.value?.role != "admin") return
         val deps = LocalAppDeps.current
+        val user = SessionStore.currentUser.collectAsState().value
+        if (user == null) {
+            SessionRequiredContent()
+            return
+        }
+        if (user.role != "admin") {
+            AccessDeniedContent(onLogout = {
+                deps.authRepo.logout()
+                SessionStore.clear()
+            })
+            return
+        }
         val vm   = rememberScreenModel { AdminViewModel(deps.adminRepo, deps.catRepo) }
         AdminCategoriesContent(vm)
+    }
+}
+
+@Composable
+private fun SessionRequiredContent() {
+    val navigator = LocalNavigator.currentOrThrow
+    LaunchedEffect(Unit) {
+        navigator.replaceAll(LoginScreen)
     }
 }

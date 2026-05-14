@@ -30,9 +30,9 @@ fun ProfileContent(viewModel: ProfileViewModel) {
 
     LaunchedEffect(state.profile) {
         state.profile?.let { p ->
-            fullName    = p.fullName    ?: ""
-            area        = p.area        ?: ""
-            description = p.description ?: ""
+            fullName = p.fullName
+            area = p.profile?.area ?: ""
+            description = p.profile?.description ?: ""
         }
     }
 

@@ -32,7 +32,7 @@ router.get(
   "/:id",
   authMiddleware,
   requireRole("docente", "admin"),
-  publicationController.getPublicationFeed
+  publicationController.getPublicationById
 );
 
 router.put(

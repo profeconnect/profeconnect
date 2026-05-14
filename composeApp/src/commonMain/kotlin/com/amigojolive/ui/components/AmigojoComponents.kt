@@ -134,7 +134,7 @@ fun PublicationCard(pub: Publication, onClick: () -> Unit) {
                     tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(Modifier.width(4.dp))
                 val authorName = if (pub.isAnonymous) "Anónimo"
-                else pub.author?.profile?.fullName ?: pub.author?.role ?: "Docente"
+                else pub.author?.displayName ?: "Docente"
                 Text(authorName, style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }

@@ -1,5 +1,17 @@
 const { z } = require("zod");
 
+const tagsSchema = z.preprocess((value) => {
+  if (value === undefined || value === null || value === "") {
+    return [];
+  }
+
+  if (Array.isArray(value)) {
+    return value;
+  }
+
+  return [value];
+}, z.array(z.coerce.number().int().positive()));
+
 const createPublicationDto = z.object({
   title: z
     .string()
@@ -21,7 +33,7 @@ const createPublicationDto = z.object({
     ])
     .optional(),
 
-    tags: z.array(z.number()),
+    tags: tagsSchema.default([]),
 });
 
 const updatePublicationDto = z.object({
@@ -39,7 +51,10 @@ const updatePublicationDto = z.object({
     .optional(),
 
   isAnonymous: z
-    .boolean()
+    .union([
+      z.boolean(),
+      z.string().transform(value => value === "true"),
+    ])
     .optional(),
 
   status: z.enum([
@@ -48,7 +63,7 @@ const updatePublicationDto = z.object({
     "HIDDEN",
   ]).optional(),
 
-  tags: z.array(z.number()),
+  tags: tagsSchema.optional(),
 });
 
 module.exports = {

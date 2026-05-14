@@ -17,7 +17,7 @@ import com.amigojolive.domain.model.ChatMessageRequest
  *   chat:error  → error del asistente
  *
  * Evento emitido al servidor:
- *   chat:stream → { history: [{ role, content }] }
+ *   chat:stream → { messages: [{ role, content }] }
  */
 expect class ChatSocketService(
     serverUrl: String,

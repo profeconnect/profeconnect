@@ -18,7 +18,7 @@ data class AuthState(
     val navigateTo: NavigationTarget? = null,
 )
 
-enum class NavigationTarget { TEACHER_HOME, ADMIN_HOME, REGISTER_SUCCESS }
+enum class NavigationTarget { TEACHER_HOME, ADMIN_HOME, ACCESS_DENIED, REGISTER_SUCCESS }
 
 class AuthViewModel(private val repo: AuthRepository) : ScreenModel {
 
@@ -47,14 +47,14 @@ class AuthViewModel(private val repo: AuthRepository) : ScreenModel {
         }
     }
 
-    fun login(email: String, password: String) {
-        if (email.isBlank() || password.isBlank()) {
+    fun login(institutionalEmail: String, password: String) {
+        if (institutionalEmail.isBlank() || password.isBlank()) {
             _state.update { it.copy(error = "Por favor, completa todos los campos.") }
             return
         }
         screenModelScope.launch {
             _state.update { it.copy(loading = true, error = null) }
-            when (val result = repo.login(email.trim(), password)) {
+            when (val result = repo.login(institutionalEmail.trim(), password)) {
                 is ApiResult.Success -> {
                     SessionStore.setUser(result.data)
                     _state.update {
@@ -68,10 +68,26 @@ class AuthViewModel(private val repo: AuthRepository) : ScreenModel {
         }
     }
 
-    fun registerRequest(email: String, password: String, fullName: String, area: String) {
+    fun registerRequest(
+        institutionalEmail: String,
+        password: String,
+        firstName: String,
+        lastName: String,
+        area: String,
+        description: String,
+    ) {
         screenModelScope.launch {
             _state.update { it.copy(loading = true, error = null) }
-            when (val r = repo.registerRequest(email.trim(), password, fullName.trim(), area.trim())) {
+            when (
+                val r = repo.registerRequest(
+                    institutionalEmail = institutionalEmail.trim(),
+                    password = password,
+                    firstName = firstName.trim(),
+                    lastName = lastName.trim(),
+                    area = area.trim().takeIf { it.isNotBlank() },
+                    description = description.trim().takeIf { it.isNotBlank() },
+                )
+            ) {
                 is ApiResult.Success -> _state.update {
                     it.copy(loading = false, navigateTo = NavigationTarget.REGISTER_SUCCESS)
                 }
@@ -92,5 +108,9 @@ class AuthViewModel(private val repo: AuthRepository) : ScreenModel {
     fun clearError()            = _state.update { it.copy(error = null) }
 
     private fun UserSummary.targetScreen() =
-        if (role == "admin") NavigationTarget.ADMIN_HOME else NavigationTarget.TEACHER_HOME
+        when (role) {
+            "admin" -> NavigationTarget.ADMIN_HOME
+            "docente" -> NavigationTarget.TEACHER_HOME
+            else -> NavigationTarget.ACCESS_DENIED
+        }
 }

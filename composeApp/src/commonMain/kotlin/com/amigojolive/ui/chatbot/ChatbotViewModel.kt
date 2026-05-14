@@ -22,6 +22,7 @@ class ChatbotViewModel(private val socketService: ChatSocketService) : ScreenMod
 
     private val _state = MutableStateFlow(ChatbotState())
     val state: StateFlow<ChatbotState> = _state.asStateFlow()
+    private var hasConnected = false
 
     init {
         socketService.onToken { token ->
@@ -62,14 +63,17 @@ class ChatbotViewModel(private val socketService: ChatSocketService) : ScreenMod
     }
 
     fun connect() {
+        if (hasConnected) return
         screenModelScope.launch {
             socketService.connect()
+            hasConnected = true
             _state.update { it.copy(connected = true) }
         }
     }
 
     fun sendMessage(text: String) {
         if (text.isBlank() || _state.value.streaming) return
+        if (!hasConnected) connect()
 
         val userMsg = ChatMessage(
             id      = Uuid.random().toString(),
@@ -88,6 +92,7 @@ class ChatbotViewModel(private val socketService: ChatSocketService) : ScreenMod
     fun clearError() = _state.update { it.copy(error = null) }
 
     override fun onDispose() {
+        hasConnected = false
         socketService.disconnect()
         super.onDispose()
     }
