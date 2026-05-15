@@ -42,9 +42,6 @@ apiClient.interceptors.request.use((config) => {
   config.headers = config.headers ?? {};
 
   if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
-    if (typeof config.headers.setContentType === 'function') {
-      config.headers.setContentType(undefined);
-    }
     if (typeof config.headers.delete === 'function') {
       config.headers.delete('Content-Type');
     } else {
