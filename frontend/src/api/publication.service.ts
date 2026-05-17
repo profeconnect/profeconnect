@@ -24,6 +24,17 @@ export async function createPublication(
   return response.data.data;
 }
 
+export async function updatePublication(
+  id: number,
+  payload: Partial<Publication>
+): Promise<Publication> {
+  const response = await apiClient.put<ApiResponse<Publication>>(
+    `/publications/${id}`,
+    payload
+  );
+  return response.data.data;
+}
+
 export async function deletePublication(id: number): Promise<void> {
   await apiClient.delete(`/publications/${id}`);
 }

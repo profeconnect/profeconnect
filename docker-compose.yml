@@ -1,8 +1,9 @@
 # PostgreSQL local para desarrollo y pruebas (AmigoJolive)
 # Arranque: docker compose up -d postgres
+# Asegúrate de configurar un archivo .env si deseas sobrescribir las credenciales.
 # Cadena típica en backend/.env:
-# DIRECT_URL="postgresql://amigo:amigo_dev@localhost:5432/amigojolive"
-# DATABASE_URL="postgresql://amigo:amigo_dev@localhost:5432/amigojolive"
+# DIRECT_URL="postgresql://${POSTGRES_USER:-amigo}:${POSTGRES_PASSWORD:-amigo_dev}@localhost:5432/${POSTGRES_DB:-amigojolive}"
+# DATABASE_URL="postgresql://${POSTGRES_USER:-amigo}:${POSTGRES_PASSWORD:-amigo_dev}@localhost:5432/${POSTGRES_DB:-amigojolive}"
 
 services:
   postgres:
@@ -10,9 +11,9 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: amigo
-      POSTGRES_PASSWORD: amigo_dev
-      POSTGRES_DB: amigojolive
+      POSTGRES_USER: ${POSTGRES_USER:-amigo}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-amigo_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-amigojolive}
     volumes:
       - amigojolive_pg:/var/lib/postgresql/data
 

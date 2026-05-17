@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { deletePublication, addComment, deleteComment } from '../api/publication.service';
+import { deletePublication, addComment, deleteComment, updatePublication } from '../api/publication.service';
 import { getPublicFilesBaseUrl } from '../api/client';
 import { useToast } from './Toast';
 import type { Publication, Comment } from '../types';
@@ -15,14 +15,22 @@ export default function PublicationCard({ pub, onDelete }: PublicationCardProps)
   const [commentContent, setCommentContent] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [comments, setComments] = useState<Comment[]>(pub.comments ?? []);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState(pub.title);
+  const [editContent, setEditContent] = useState(pub.content);
+  const [localTitle, setLocalTitle] = useState(pub.title);
+  const [localContent, setLocalContent] = useState(pub.content);
+  const [isUpdating, setIsUpdating] = useState(false);
   const { user } = useAuth();
   const { success, error } = useToast();
   const canDelete = user?.role === 'admin' || user?.id === pub.author.id;
   const publicFilesBaseUrl = getPublicFilesBaseUrl();
 
   useEffect(() => {
+    setLocalTitle(pub.title);
+    setLocalContent(pub.content);
     setComments(pub.comments ?? []);
-  }, [pub.comments]);
+  }, [pub]);
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -35,6 +43,28 @@ export default function PublicationCard({ pub, onDelete }: PublicationCardProps)
     } catch (err) {
       error('Error al eliminar la publicación.');
       console.error(err);
+    }
+  };
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editTitle.trim() || !editContent.trim()) return;
+
+    setIsUpdating(true);
+    try {
+      await updatePublication(pub.id, {
+        title: editTitle.trim(),
+        content: editContent.trim(),
+      });
+      setLocalTitle(editTitle.trim());
+      setLocalContent(editContent.trim());
+      success('Publicación actualizada correctamente.');
+      setIsEditing(false);
+    } catch (err) {
+      error('Error al actualizar la publicación.');
+      console.error(err);
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -75,7 +105,7 @@ export default function PublicationCard({ pub, onDelete }: PublicationCardProps)
       onClick={() => setIsExpanded(!isExpanded)}
     >
       <div className="flex items-center justify-between gap-4">
-        <h2 className="text-xl font-semibold text-slate-900">{pub.title}</h2>
+        <h2 className="text-xl font-semibold text-slate-900">{localTitle}</h2>
         <span className="text-slate-400">
           {isExpanded ? (
             <svg
@@ -129,29 +159,83 @@ export default function PublicationCard({ pub, onDelete }: PublicationCardProps)
               {pub.isAnonymous && <span className="ml-2 text-slate-400 italic">(Anónimo)</span>}
             </p>
             {canDelete && (
-              <button
-                onClick={handleDelete}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100 transition-colors"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  className="h-4 w-4"
+              <div className="flex gap-2">
+                {user?.id === pub.author.id && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditTitle(localTitle);
+                      setEditContent(localContent);
+                      setIsEditing(!isEditing);
+                    }}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
+                  >
+                    Editar
+                  </button>
+                )}
+                <button
+                  onClick={handleDelete}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100 transition-colors"
                 >
-                  <path
-                    fillRule="evenodd"
-                    d="M8.75 1A2.75 2.75 0 006 3.75V4H5a2 2 0 00-2 2v.092c0 .546.401.992.945 1.041l.37 3.518a4.25 4.25 0 004.225 3.849h3.42a4.25 4.25 0 004.225-3.849l.37-3.518A1.05 1.05 0 0017 6.092V6a2 2 0 00-2-2h-1V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4.5h2.5V4h-2.5v.5zM7.5 4h5v-.25A1.25 1.25 0 0011.25 2.5h-2.5A1.25 1.25 0 007.5 3.75V4zM5 5.5h10V6H5v-.5z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                Borrar
-              </button>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    className="h-4 w-4"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M8.75 1A2.75 2.75 0 006 3.75V4H5a2 2 0 00-2 2v.092c0 .546.401.992.945 1.041l.37 3.518a4.25 4.25 0 004.225 3.849h3.42a4.25 4.25 0 004.225-3.849l.37-3.518A1.05 1.05 0 0017 6.092V6a2 2 0 00-2-2h-1V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4.5h2.5V4h-2.5v.5zM7.5 4h5v-.25A1.25 1.25 0 0011.25 2.5h-2.5A1.25 1.25 0 007.5 3.75V4zM5 5.5h10V6H5v-.5z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  Borrar
+                </button>
+              </div>
             )}
           </div>
-          <div className="text-slate-700 whitespace-pre-wrap">
-            {pub.content}
-          </div>
+          {isEditing ? (
+            <form onSubmit={handleUpdate} className="flex flex-col gap-3 my-4" onClick={(e) => e.stopPropagation()}>
+              <input
+                type="text"
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                className="rounded-lg border-slate-200 text-sm font-semibold focus:border-brand-500 focus:ring-brand-500"
+                placeholder="Título de la publicación"
+                disabled={isUpdating}
+                required
+              />
+              <textarea
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                className="rounded-lg border-slate-200 text-sm min-h-[100px] focus:border-brand-500 focus:ring-brand-500"
+                placeholder="Contenido..."
+                disabled={isUpdating}
+                required
+              />
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(false)}
+                  className="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 rounded-lg transition-colors"
+                  disabled={isUpdating}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUpdating}
+                  className="px-3 py-1.5 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-lg disabled:opacity-50 transition-colors"
+                >
+                  {isUpdating ? 'Guardando...' : 'Guardar'}
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div className="text-slate-700 whitespace-pre-wrap">
+              {localContent}
+            </div>
+          )}
           
           {pub.attachments && pub.attachments.length > 0 && (
             <div className="mt-6">

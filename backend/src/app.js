@@ -36,8 +36,9 @@ app.use(
   "/public",
   express.static(PUBLIC_DIR, {
     setHeaders(res, filePath) {
-      if (filePath.includes(`${path.sep}documents${path.sep}`)) {
-        res.setHeader("Content-Disposition", "attachment");
+      if (filePath.includes(`${path.sep}documents${path.sep}`) || filePath.includes('/documents/') || filePath.includes('\\documents\\')) {
+        const filename = path.basename(filePath);
+        res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
       }
       res.setHeader("Cache-Control", "public, max-age=86400");
     },

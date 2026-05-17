@@ -9,6 +9,9 @@ const DOCUMENT_MIME_TYPES = new Set([
   "application/pdf",
   "application/vnd.ms-excel",
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "text/plain",
 ]);
 
 function validatePublicationFiles(req, res, next) {
@@ -46,7 +49,11 @@ function validatePublicationFiles(req, res, next) {
   for (const doc of documents) {
     const limitBytes = MAX_DOCUMENT_SIZE_MB * 1024 * 1024;
     if (doc.size > limitBytes) {
-      const documentLabel = doc.mimetype === "application/pdf" ? "PDF" : "archivo Excel";
+      let documentLabel = "archivo Excel";
+      if (doc.mimetype === "application/pdf") documentLabel = "PDF";
+      else if (doc.mimetype.includes("wordprocessingml") || doc.mimetype === "application/msword") documentLabel = "documento Word";
+      else if (doc.mimetype === "text/plain") documentLabel = "archivo de texto";
+      
       return res.status(400).json(
         new ApiResponse(
           false,
