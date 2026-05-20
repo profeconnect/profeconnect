@@ -3,6 +3,9 @@ const FileType = require("file-type");
 const fs = require("fs");
 const prisma = require("../lib/prisma");
 
+const NodeClam = require('clamscan');
+const { extractFileMetadata } = require('../utils/file-analyzer.util');
+
 const MAX_IMAGE_SIZE_MB = 2;
 const MAX_DOCUMENT_SIZE_MB = 10;
 const MAX_IMAGES = 4;
@@ -21,6 +24,20 @@ async function validatePublicationFiles(req, res, next) {
   try {
     const files = req.files || [];
 
+    let clamscan;
+    try {
+      clamscan = await new NodeClam().init({
+        clamdscan: {
+          host: process.env.CLAMAV_HOST || '127.0.0.1',
+          port: process.env.CLAMAV_PORT || 3310,
+          active: true
+        },
+        preference: 'clamdscan'
+      });
+    } catch (err) {
+      console.warn("⚠️ ClamAV no está disponible o no respondió. Se omitirá el escaneo profundo:", err.message);
+    }
+
     const images = files.filter((f) => f.mimetype.startsWith("image/"));
     const documents = files.filter((f) => DOCUMENT_MIME_TYPES.has(f.mimetype));
 
@@ -32,7 +49,7 @@ async function validatePublicationFiles(req, res, next) {
       return res.status(400).json(new ApiResponse(false, 400, `Máximo ${MAX_DOCUMENTS} documento por publicación`, {}));
     }
 
-    // 🛡️ VALIDACIÓN ESTRICTA DE MAGIC NUMBERS
+    // VALIDACIÓN ESTRICTA DE MAGIC NUMBERS
     for (const file of files) {
       const expectedMime = file.mimetype; // Lo que el usuario dice que es (ej. application/pdf)
       const fileTypeResult = await FileType.fromFile(file.path);
@@ -58,30 +75,32 @@ async function validatePublicationFiles(req, res, next) {
       }
 
       if (isMismatch) {
-        // 1. NO borramos el archivo malicioso para análisis forense
+        // Marcamos el archivo como sospechoso en memoria y guardamos los datos
+        file.isSuspicious = true;
+        file.detectedMime = actualMime;
+        file.attemptedMime = expectedMime;
+      }
 
-        // 2. Registramos el incidente en la Base de Datos con la ruta física
-        const userId = req.user ? req.user.id : 0;
-        await prisma.securityIncident.create({
-          data: {
-            userId,
-            fileName: file.originalname,
-            attemptedMime: expectedMime,
-            detectedMime: actualMime,
-            status: "PENDING",
-            physicalPath: file.path,
-          },
-        });
+      // Si el Magic Number estaba bien (el archivo es estructuralmente válido), procedemos al escaneo de malware
+      if (!file.isSuspicious && clamscan) {
+        try {
+          const readStream = fs.createReadStream(file.path);
+          const { isInfected, viruses } = await clamscan.scanStream(readStream);
 
-        // 3. Borramos el resto de archivos inofensivos de esta petición (saltando el malicioso)
-        for (const f of files) {
-          if (f.path !== file.path && fs.existsSync(f.path)) fs.unlinkSync(f.path);
+          if (isInfected) {
+            file.isSuspicious = true;
+            // Guardamos el nombre del virus detectado como evidencia forense
+            file.detectedMime = "VIRUS: " + viruses.join(", "); 
+            file.attemptedMime = expectedMime;
+          }
+        } catch (scanErr) {
+          console.error("Error al escanear archivo con ClamAV:", scanErr.message);
         }
+      }
 
-        // 4. Bloqueamos la petición con el nuevo mensaje
-        return res.status(400).json(
-          new ApiResponse(false, 400, `ALERTA DE SEGURIDAD: El archivo será inspeccionado por un moderador/administrador por intentar subir un formato que no corresponde a su extensión. Si estas actividades persisten, su cuenta será bloqueada.`, {})
-        );
+      if (file.isSuspicious) {
+        const isMalware = file.detectedMime?.startsWith("VIRUS");
+        file.extractedMetadata = await extractFileMetadata(file, isMalware);
       }
     }
 

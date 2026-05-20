@@ -110,6 +110,7 @@ export interface Attachment {
   mimeType?: string;
   size?: number;
   type?: "IMAGE" | "DOCUMENT" | string;
+  isSuspicious?: boolean;
 }
 
 export interface Publication {
@@ -151,7 +152,8 @@ export interface SecurityIncident {
   fileName: string;
   attemptedMime: string;
   detectedMime: string;
-  status: string;
+  status: "PENDING" | "FALSE_ALARM" | "MALWARE_DELETED" | string;
+  fileMetadata?: any;
   createdAt: string;
   user?: {
     id: number;
@@ -159,4 +161,5 @@ export interface SecurityIncident {
     lastName: string;
     institutionalEmail: string;
   };
+  postId?: number;
 }

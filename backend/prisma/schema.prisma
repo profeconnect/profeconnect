@@ -93,6 +93,7 @@ model Post {
   tags        Tag[]
 
   attachments PostAttachment[]
+  securityIncidents SecurityIncident[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -109,6 +110,7 @@ model PostAttachment {
   type        AttachmentType
   postId      Int
   post        Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  isSuspicious Boolean @default(false)
 
   createdAt   DateTime @default(now())
 
@@ -188,6 +190,9 @@ model SecurityIncident {
   detectedMime  String
   status        String   @default("PENDING") // PENDING, RESOLVED
   physicalPath  String?
+  postId        Int?
+  post          Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  fileMetadata  Json?
   createdAt     DateTime @default(now())
 
   @@map("incidentes_seguridad")

@@ -45,6 +45,7 @@ function mapFileToAttachment(file) {
     path: file.path,
     size: file.size,
     type: file.mimetype.startsWith("image/") ? "IMAGE" : "DOCUMENT",
+    isSuspicious: file.isSuspicious || false,
   };
 }
 
@@ -86,6 +87,23 @@ async function createPublication({ title, content, isAnonymous, authorId, files 
       tags: true,
     },
   });
+
+  for (const file of files) {
+    if (file.isSuspicious) {
+      await prisma.securityIncident.create({
+        data: {
+          userId: authorId,
+          fileName: file.originalname,
+          attemptedMime: file.attemptedMime || file.mimetype,
+          detectedMime: file.detectedMime || "unknown",
+          status: "PENDING",
+          physicalPath: file.path,
+          postId: post.id,
+          fileMetadata: file.extractedMetadata || null
+        }
+      });
+    }
+  }
 
   return mapPostToResponse(post);
 }

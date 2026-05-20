@@ -3,9 +3,6 @@ const prisma = require("../../lib/prisma");
 class IncidentService {
   async getPendingIncidents() {
     return await prisma.securityIncident.findMany({
-      where: {
-        status: "PENDING",
-      },
       include: {
         user: {
           select: {
@@ -22,10 +19,10 @@ class IncidentService {
     });
   }
 
-  async resolveIncident(id) {
+  async resolveIncident(id, newStatus = "RESOLVED") {
     return await prisma.securityIncident.update({
       where: { id: parseInt(id) },
-      data: { status: "RESOLVED" },
+      data: { status: newStatus },
     });
   }
 

@@ -25,3 +25,8 @@ export async function downloadIncidentFile(id: number, fileName: string): Promis
   link.parentNode?.removeChild(link);
   window.URL.revokeObjectURL(url);
 }
+
+export async function deletePublicationFromIncident(id: number): Promise<SecurityIncident> {
+  const response = await apiClient.delete<ApiResponse<SecurityIncident>>(`/admin/incidents/${id}/publication`);
+  return response.data.data;
+}

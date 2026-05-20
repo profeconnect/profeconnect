@@ -26,4 +26,11 @@ router.get(
   incidentController.downloadIncidentFile
 );
 
+router.delete(
+  "/:id/publication",
+  authMiddleware,
+  requireRole("admin", "moderator"),
+  incidentController.deletePostFromIncident
+);
+
 module.exports = router;

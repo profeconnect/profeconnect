@@ -258,13 +258,19 @@ export default function PublicationCard({ pub, onDelete }: PublicationCardProps)
                       className="rounded-xl border border-slate-200 bg-slate-50 p-3"
                     >
                       <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-medium text-slate-900">
                             {displayName}
                           </p>
                           <p className="mt-1 text-xs text-slate-500">
                             {isImage ? 'Imagen adjunta' : 'Documento adjunto'}
                           </p>
+                          {file.isSuspicious && (
+                            <div className="mt-2 inline-flex items-start gap-1.5 rounded-md bg-red-50 px-2 py-1.5 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">
+                              <span className="shrink-0">⚠️</span>
+                              <span className="whitespace-normal">Advertencia: El formato de este archivo no coincide con su contenido real. Ábralo bajo su propio riesgo.</span>
+                            </div>
+                          )}
                         </div>
 
                         <a
