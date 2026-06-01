@@ -43,13 +43,13 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 p-8 text-white shadow-lg">
-        <p className="text-sm uppercase tracking-wider text-brand-100">
+        <p className="text-sm uppercase tracking-wider text-gray-100">
           Bienvenido(a)
         </p>
-        <h1 className="mt-1 text-3xl font-semibold">
+        <h1 className="mt-1 text-3xl font-semibold text-white">
           {user.firstName} {user.lastName}
         </h1>
-        <p className="mt-3 max-w-2xl text-brand-50">
+        <p className="mt-3 max-w-2xl text-gray-100">
           {roleGreeting[user.role]}
         </p>
       </div>
