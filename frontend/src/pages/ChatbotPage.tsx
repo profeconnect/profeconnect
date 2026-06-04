@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { getChatbotSocket, disconnectChatbot, sendChatStream, type ChatMessage } from '../api/socket';
 
 export default function ChatbotPage() {
@@ -104,7 +105,13 @@ export default function ChatbotPage() {
                   : 'bg-slate-100 text-slate-800'
               }`}
             >
-              {msg.content}
+              {msg.role === 'user' ? (
+                msg.content
+              ) : (
+                <div className="prose prose-sm prose-slate max-w-none break-words">
+                  <ReactMarkdown>{msg.content}</ReactMarkdown>
+                </div>
+              )}
             </div>
           </div>
         ))}
