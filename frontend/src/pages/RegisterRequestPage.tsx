@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Button from '../components/Button';
 import Field from '../components/Field';
@@ -30,17 +30,35 @@ export default function RegisterRequestPage() {
   const navigate = useNavigate();
   const toast = useToast();
   const [form, setForm] = useState<FormState>(initialState);
-  const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>(
-    {}
-  );
+  const [cedulaPhoto, setCedulaPhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof FormState | 'cedulaPhoto', string>>
+  >({});
   const [submitting, setSubmitting] = useState(false);
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
+  function handlePhotoChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0] ?? null;
+    setCedulaPhoto(file);
+
+    if (photoPreview) {
+      URL.revokeObjectURL(photoPreview);
+    }
+
+    setPhotoPreview(
+      file && file.type.startsWith('image/')
+        ? URL.createObjectURL(file)
+        : null
+    );
+    setErrors((prev) => ({ ...prev, cedulaPhoto: undefined }));
+  }
+
   function validate(): boolean {
-    const next: Partial<Record<keyof FormState, string>> = {};
+    const next: Partial<Record<keyof FormState | 'cedulaPhoto', string>> = {};
     if (!form.firstName.trim()) next.firstName = 'Ingrese sus nombres';
     if (!form.lastName.trim()) next.lastName = 'Ingrese sus apellidos';
     if (
@@ -48,6 +66,9 @@ export default function RegisterRequestPage() {
       !form.institutionalEmail.includes('@')
     ) {
       next.institutionalEmail = 'Correo institucional inválido';
+    }
+    if (!cedulaPhoto) {
+      next.cedulaPhoto = 'Debe adjuntar una foto de su cédula';
     }
     if (form.password.length < 8) {
       next.password = 'Mínimo 8 caracteres';
@@ -61,7 +82,7 @@ export default function RegisterRequestPage() {
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    if (!validate()) return;
+    if (!validate() || !cedulaPhoto) return;
 
     setSubmitting(true);
     try {
@@ -70,6 +91,7 @@ export default function RegisterRequestPage() {
         lastName: form.lastName.trim(),
         institutionalEmail: form.institutionalEmail.trim(),
         password: form.password,
+        cedulaPhoto,
         area: form.area.trim() || undefined,
         description: form.description.trim() || undefined,
       });
@@ -163,6 +185,35 @@ export default function RegisterRequestPage() {
               onChange={(e) => update('passwordConfirm', e.target.value)}
               error={errors.passwordConfirm}
             />
+          </div>
+
+          <div className="mt-4">
+            <label className="mb-1.5 block text-sm font-medium text-slate-700">
+              Foto de cédula <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="file"
+              onChange={handlePhotoChange}
+              className="block w-full text-sm text-slate-600 file:mr-4 file:rounded-lg file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-brand-700 hover:file:bg-brand-100"
+            />
+            <p className="mt-1 text-xs text-slate-500">
+              Acepta cualquier formato (imagen, PDF, etc.)
+            </p>
+            {errors.cedulaPhoto && (
+              <p className="mt-1 text-sm text-red-600">{errors.cedulaPhoto}</p>
+            )}
+            {cedulaPhoto && !photoPreview && (
+              <p className="mt-2 text-sm text-slate-600">
+                Archivo seleccionado: {cedulaPhoto.name}
+              </p>
+            )}
+            {photoPreview && (
+              <img
+                src={photoPreview}
+                alt="Vista previa de cédula"
+                className="mt-3 max-h-48 rounded-lg border border-slate-200 object-contain"
+              />
+            )}
           </div>
 
           <div className="mt-4">

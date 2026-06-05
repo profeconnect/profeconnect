@@ -1,4 +1,5 @@
 const prisma = require("../../lib/prisma");
+const { resolveCedulaPath } = require("../../lib/cedula-storage");
 
 const VALID_USER_STATUSES = ["ACTIVO", "INACTIVO", "PENDIENTE", "BLOQUEADO"];
 
@@ -72,7 +73,39 @@ async function updateUserStatus(userId, status) {
   };
 }
 
+async function getUserCedulaPhoto(userId) {
+  const id = Number(userId);
+
+  if (Number.isNaN(id)) {
+    const error = new Error("ID de usuario no válido");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id },
+    select: {
+      cedulaPhotoPath: true,
+      cedulaPhotoMime: true,
+      cedulaPhotoName: true,
+    },
+  });
+
+  if (!user?.cedulaPhotoPath) {
+    const error = new Error("Foto de cédula no encontrada");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  return {
+    fullPath: resolveCedulaPath(user.cedulaPhotoPath),
+    mimeType: user.cedulaPhotoMime || "application/octet-stream",
+    filename: user.cedulaPhotoName || "cedula",
+  };
+}
+
 module.exports = {
   getUsers,
   updateUserStatus,
+  getUserCedulaPhoto,
 };

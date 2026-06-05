@@ -8,8 +8,15 @@ const router = express.Router();
 router.get(
   "/",
   authMiddleware,
-  requireRole("admin"),
+  requireRole("admin", "moderador"),
   registrationRequestController.getRegistrationRequests
+);
+
+router.get(
+  "/:id/cedula-photo",
+  authMiddleware,
+  requireRole("admin", "moderador"),
+  registrationRequestController.getRegistrationRequestCedulaPhoto
 );
 
 router.patch(

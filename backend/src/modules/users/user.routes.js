@@ -26,4 +26,12 @@ router.patch(
   userController.updateUserStatus
 );
 
+router.get(
+  "/:id/cedula-photo",
+  authMiddleware,
+  requireRole("admin", "moderador"),
+  validateDto(userIdParamDto, "params"),
+  userController.getUserCedulaPhoto
+);
+
 module.exports = router;

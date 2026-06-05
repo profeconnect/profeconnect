@@ -75,10 +75,11 @@ async function getReportedPosts() {
     where: { id: { in: postIds }, status: "PUBLISHED" },
     include: {
       author: {
-        include: { role: true }
+        include: { role: true },
       },
       attachments: true,
-    }
+      tags: true,
+    },
   });
 
   const sortedPosts = reportCounts.map(rc => {
@@ -86,15 +87,25 @@ async function getReportedPosts() {
     if (!post) return null;
 
     return {
-      ...post,
+      id: post.id,
+      title: post.title,
+      content: post.content,
+      isAnonymous: post.isAnonymous,
+      status: post.status,
+      createdAt: post.createdAt,
+      updatedAt: post.updatedAt,
+      attachments: post.attachments,
+      tags: post.tags,
       author: {
         id: post.author.id,
         firstName: post.author.firstName,
         lastName: post.author.lastName,
         institutionalEmail: post.author.institutionalEmail,
         role: post.author.role?.name,
+        hasCedulaPhoto: Boolean(post.author.cedulaPhotoPath),
+        cedulaPhotoName: post.author.cedulaPhotoName,
       },
-      reportCount: rc._count.id
+      reportCount: rc._count.id,
     };
   }).filter(Boolean);
 

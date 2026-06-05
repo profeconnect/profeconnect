@@ -6,7 +6,12 @@ const { ApiResponse } = require("../../config/api.response");
  */
 async function registerRequest(req, res, next) {
   try {
-    const request = await authService.createRegistrationRequest(req.body);
+    const request = await authService.createRegistrationRequest({
+      ...req.body,
+      cedulaPhotoPath: req.cedulaPhotoPath,
+      cedulaPhotoMime: req.cedulaPhotoMime,
+      cedulaPhotoName: req.cedulaPhotoName,
+    });
 
     const apiResponse = new ApiResponse(true, 201, "Solicitud de registro enviada correctamente. Un administrador revisará la información.", request);
 

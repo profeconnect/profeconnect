@@ -1,7 +1,13 @@
 import { apiClient } from './client';
-import type { ApiResponse, Publication } from '../types';
+import type { ApiResponse, Publication, PublicationAuthor } from '../types';
 
-export interface ReportedPost extends Publication {
+export interface ReportedPostAuthor extends PublicationAuthor {
+  hasCedulaPhoto: boolean;
+  cedulaPhotoName: string | null;
+}
+
+export interface ReportedPost extends Omit<Publication, 'author'> {
+  author: ReportedPostAuthor;
   reportCount: number;
 }
 

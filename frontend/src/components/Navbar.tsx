@@ -82,14 +82,24 @@ export default function Navbar() {
             </>
           )}
           {user?.role === 'moderador' && (
-            <NavLink
-              to="/admin/incidentes"
-              className={({ isActive }) =>
-                `${baseLink} ${isActive ? activeLink : 'text-slate-700'}`
-              }
-            >
-              Incidentes
-            </NavLink>
+            <>
+              <NavLink
+                to="/admin/solicitudes"
+                className={({ isActive }) =>
+                  `${baseLink} ${isActive ? activeLink : 'text-slate-700'}`
+                }
+              >
+                Solicitudes
+              </NavLink>
+              <NavLink
+                to="/admin/incidentes"
+                className={({ isActive }) =>
+                  `${baseLink} ${isActive ? activeLink : 'text-slate-700'}`
+                }
+              >
+                Incidentes
+              </NavLink>
+            </>
           )}
         </nav>
 

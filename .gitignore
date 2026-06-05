@@ -6,6 +6,8 @@ backend/.env
 public
 !backend/public/images/.gitkeep
 !backend/public/documents/.gitkeep
+backend/private/
+!backend/private/cedulas/.gitkeep
 .vs
 # Excluir carpetas de compilación y configuración local de Kotlin/Android
 composeApp/.gradle/

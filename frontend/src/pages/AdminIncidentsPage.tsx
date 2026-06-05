@@ -4,6 +4,7 @@ import { useToast } from '../components/Toast';
 import { extractErrorMessage } from '../api/client';
 import { getPendingIncidents, resolveIncident, downloadIncidentFile, deletePublicationFromIncident } from '../api/incident.service';
 import { getReportedPosts, type ReportedPost } from '../api/reports.service';
+import { openUserCedulaPhoto } from '../api/admin.service';
 import { deletePublication } from '../api/publication.service';
 import type { SecurityIncident } from '../types';
 
@@ -59,6 +60,7 @@ export default function AdminIncidentsPage() {
   const [loadingReported, setLoadingReported] = useState(false);
   const [deletingPostId, setDeletingPostId] = useState<number | null>(null);
   const [expandedPostId, setExpandedPostId] = useState<number | null>(null);
+  const [viewingCedulaUserId, setViewingCedulaUserId] = useState<number | null>(null);
 
   // --- Main tab ---
   const [mainTab, setMainTab] = useState<MainTab>('INCIDENTS');
@@ -154,6 +156,17 @@ export default function AdminIncidentsPage() {
   }
 
   // --- Reported Post handlers ---
+  async function handleViewUserCedula(userId: number) {
+    setViewingCedulaUserId(userId);
+    try {
+      await openUserCedulaPhoto(userId);
+    } catch (error) {
+      toast.error(extractErrorMessage(error, 'No se pudo cargar la foto de cédula'));
+    } finally {
+      setViewingCedulaUserId(null);
+    }
+  }
+
   async function handleDeleteReportedPost(post: ReportedPost) {
     if (!window.confirm(`¿Estás seguro de que deseas eliminar la publicación "${post.title}" y todos sus adjuntos?`)) return;
     setDeletingPostId(post.id);
@@ -393,6 +406,11 @@ export default function AdminIncidentsPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2 mb-1">
                           <ReportBadge count={post.reportCount} />
+                          {post.isAnonymous && (
+                            <span className="inline-flex items-center rounded-full bg-violet-100 px-2.5 py-0.5 text-xs font-semibold text-violet-700 ring-1 ring-violet-300/50">
+                              Publicación anónima
+                            </span>
+                          )}
                           {isHigh && (
                             <span className="inline-flex items-center gap-1 rounded-full bg-red-600 px-2.5 py-0.5 text-xs font-bold text-white">
                               ⚡ Alta Importancia
@@ -405,19 +423,12 @@ export default function AdminIncidentsPage() {
                         </h3>
 
                         <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
-                          <span>
-                            Autor:{' '}
-                            <span className="font-medium text-slate-700">
-                              {post.author?.firstName} {post.author?.lastName}
-                            </span>
-                          </span>
-                          <span>·</span>
                           <span>{formatDate(post.createdAt)}</span>
-                          {(post as any).tags?.length > 0 && (
+                          {post.tags?.length > 0 && (
                             <>
                               <span>·</span>
                               <div className="flex flex-wrap gap-1">
-                                {(post as any).tags.map((tag: any) => (
+                                {post.tags.map((tag) => (
                                   <span
                                     key={tag.id}
                                     className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700"
@@ -428,6 +439,34 @@ export default function AdminIncidentsPage() {
                               </div>
                             </>
                           )}
+                        </div>
+
+                        <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                            Identidad real del autor
+                          </p>
+                          <div className="mt-2 grid gap-1 text-slate-700">
+                            <p>
+                              <span className="text-slate-500">Nombre:</span>{' '}
+                              {post.author.firstName} {post.author.lastName}
+                            </p>
+                            <p>
+                              <span className="text-slate-500">Correo:</span>{' '}
+                              {post.author.institutionalEmail}
+                            </p>
+                            {post.author.hasCedulaPhoto && post.author.id && (
+                              <button
+                                type="button"
+                                onClick={() => handleViewUserCedula(post.author.id!)}
+                                disabled={viewingCedulaUserId === post.author.id}
+                                className="mt-1 w-fit text-sm font-medium text-brand-700 hover:text-brand-800 disabled:opacity-50"
+                              >
+                                {viewingCedulaUserId === post.author.id
+                                  ? 'Abriendo...'
+                                  : `Ver foto de cédula${post.author.cedulaPhotoName ? ` (${post.author.cedulaPhotoName})` : ''}`}
+                              </button>
+                            )}
+                          </div>
                         </div>
 
                         {isExpanded && (

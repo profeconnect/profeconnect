@@ -33,6 +33,9 @@ export default function AppRoutes() {
 
           <Route element={<RoleRoute allow={['admin']} />}>
             <Route path="/admin/usuarios" element={<AdminUsersPage />} />
+          </Route>
+
+          <Route element={<RoleRoute allow={['admin', 'moderador']} />}>
             <Route
               path="/admin/solicitudes"
               element={<AdminRequestsPage />}

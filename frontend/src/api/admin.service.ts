@@ -54,3 +54,27 @@ export async function rejectRegistrationRequest(
   );
   return response.data;
 }
+
+export async function openRegistrationRequestCedulaPhoto(
+  requestId: number
+): Promise<void> {
+  const response = await apiClient.get(
+    `/admin/registration-requests/${requestId}/cedula-photo`,
+    { responseType: 'blob' }
+  );
+
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  window.open(url, '_blank', 'noopener,noreferrer');
+  window.setTimeout(() => window.URL.revokeObjectURL(url), 60_000);
+}
+
+export async function openUserCedulaPhoto(userId: number): Promise<void> {
+  const response = await apiClient.get(
+    `/admin/users/${userId}/cedula-photo`,
+    { responseType: 'blob' }
+  );
+
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  window.open(url, '_blank', 'noopener,noreferrer');
+  window.setTimeout(() => window.URL.revokeObjectURL(url), 60_000);
+}

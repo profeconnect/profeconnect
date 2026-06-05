@@ -9,8 +9,10 @@ import { extractErrorMessage } from '../api/client';
 import {
   approveRegistrationRequest,
   getRegistrationRequests,
+  openRegistrationRequestCedulaPhoto,
   rejectRegistrationRequest,
 } from '../api/admin.service';
+import { useAuth } from '../context/AuthContext';
 import type {
   RegistrationRequest,
   RegistrationRequestStatus,
@@ -39,6 +41,8 @@ function formatDate(value: string | null) {
 
 export default function AdminRequestsPage() {
   const toast = useToast();
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const [requests, setRequests] = useState<RegistrationRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<StatusFilter>('PENDIENTE');
@@ -48,6 +52,7 @@ export default function AdminRequestsPage() {
     null
   );
   const [rejectComment, setRejectComment] = useState('');
+  const [viewingPhotoId, setViewingPhotoId] = useState<number | null>(null);
 
   const load = useCallback(
     async (statusFilter: StatusFilter) => {
@@ -71,6 +76,19 @@ export default function AdminRequestsPage() {
   useEffect(() => {
     load(filter);
   }, [filter, load]);
+
+  async function handleViewCedula(request: RegistrationRequest) {
+    setViewingPhotoId(request.id);
+    try {
+      await openRegistrationRequestCedulaPhoto(request.id);
+    } catch (error) {
+      toast.error(
+        extractErrorMessage(error, 'No se pudo cargar la foto de cédula')
+      );
+    } finally {
+      setViewingPhotoId(null);
+    }
+  }
 
   async function handleApprove(request: RegistrationRequest) {
     setActionId(request.id);
@@ -174,6 +192,18 @@ export default function AdminRequestsPage() {
                   <p className="text-sm text-slate-600">
                     {req.institutionalEmail}
                   </p>
+                  {req.hasCedulaPhoto && (
+                    <button
+                      type="button"
+                      onClick={() => handleViewCedula(req)}
+                      disabled={viewingPhotoId === req.id}
+                      className="mt-2 text-sm font-medium text-brand-700 hover:text-brand-800 disabled:opacity-50"
+                    >
+                      {viewingPhotoId === req.id
+                        ? 'Abriendo...'
+                        : `Ver foto de cédula${req.cedulaPhotoName ? ` (${req.cedulaPhotoName})` : ''}`}
+                    </button>
+                  )}
                   {req.area && (
                     <p className="mt-1 text-xs text-slate-500">
                       Área: <span className="font-medium">{req.area}</span>
@@ -203,7 +233,7 @@ export default function AdminRequestsPage() {
                   </div>
                 </div>
 
-                {req.status === 'PENDIENTE' && (
+                {req.status === 'PENDIENTE' && isAdmin && (
                   <div className="flex gap-2 sm:flex-col sm:items-stretch">
                     <Button
                       variant="success"

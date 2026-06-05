@@ -30,6 +30,28 @@ async function approveRegistrationRequest(req, res, next) {
   }
 }
 
+async function getRegistrationRequestCedulaPhoto(req, res, next) {
+  try {
+    const photo = await registrationRequestService.getRegistrationRequestCedulaPhoto(
+      req.params.id
+    );
+
+    res.setHeader("Content-Type", photo.mimeType);
+    res.setHeader(
+      "Content-Disposition",
+      `inline; filename="${photo.filename}"`
+    );
+
+    return res.sendFile(photo.fullPath, (err) => {
+      if (err) {
+        next(err);
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 async function rejectRegistrationRequest(req, res, next) {
   try {
     const request = await registrationRequestService.rejectRegistrationRequest(
@@ -50,4 +72,5 @@ module.exports = {
   getRegistrationRequests,
   approveRegistrationRequest,
   rejectRegistrationRequest,
+  getRegistrationRequestCedulaPhoto,
 };

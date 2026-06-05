@@ -8,17 +8,17 @@ const router = express.Router();
 
 router.get("/posts",
     authMiddleware,
-    requireRole("admin", "moderator"),
+    requireRole("admin", "moderador"),
     reportsController.getReportedPosts);
 
 router.get("/",
     authMiddleware,
-    requireRole("admin", "moderator"),
+    requireRole("admin", "moderador"),
     reportsController.getAllReports);
 
 router.get("/:postId",
     authMiddleware,
-    requireRole("admin", "moderator"),
+    requireRole("admin", "moderador"),
     reportsController.getReportsByPostId);
 
 router.post("/:postId",
@@ -27,12 +27,12 @@ router.post("/:postId",
 
 router.delete("/:postId",
     authMiddleware,
-    requireRole("admin", "moderator"),
+    requireRole("admin", "moderador"),
     reportsController.deleteReports);
 
 router.get("/:postId/total",
     authMiddleware,
-    requireRole("admin", "moderator"),
+    requireRole("admin", "moderador"),
     reportsController.getTotalReportsByPostId);
 
 module.exports = router;

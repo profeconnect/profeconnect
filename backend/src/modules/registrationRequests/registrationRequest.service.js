@@ -1,4 +1,5 @@
 const prisma = require("../../lib/prisma");
+const { resolveCedulaPath } = require("../../lib/cedula-storage");
 
 /***
  * Obtener todas las solicitudes de registro pendientes por aprobar -- SOLO MODERADOR
@@ -32,6 +33,8 @@ async function getRegistrationRequests(status) {
     institutionalEmail: request.institutionalEmail,
     firstName: request.firstName,
     lastName: request.lastName,
+    hasCedulaPhoto: Boolean(request.cedulaPhotoPath),
+    cedulaPhotoName: request.cedulaPhotoName,
     area: request.area,
     description: request.description,
     status: request.status,
@@ -41,6 +44,37 @@ async function getRegistrationRequests(status) {
     createdAt: request.createdAt,
     updatedAt: request.updatedAt,
   }));
+}
+
+async function getRegistrationRequestCedulaPhoto(requestId) {
+  const id = Number(requestId);
+
+  if (Number.isNaN(id)) {
+    const error = new Error("ID de solicitud no válido");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const request = await prisma.registrationRequest.findUnique({
+    where: { id },
+    select: {
+      cedulaPhotoPath: true,
+      cedulaPhotoMime: true,
+      cedulaPhotoName: true,
+    },
+  });
+
+  if (!request?.cedulaPhotoPath) {
+    const error = new Error("Foto de cédula no encontrada");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  return {
+    fullPath: resolveCedulaPath(request.cedulaPhotoPath),
+    mimeType: request.cedulaPhotoMime || "application/octet-stream",
+    filename: request.cedulaPhotoName || "cedula",
+  };
 }
 
 /***
@@ -108,6 +142,9 @@ async function approveRegistrationRequest(requestId, adminUserId) {
         passwordHash: request.passwordHash,
         firstName: request.firstName,
         lastName: request.lastName,
+        cedulaPhotoPath: request.cedulaPhotoPath,
+        cedulaPhotoMime: request.cedulaPhotoMime,
+        cedulaPhotoName: request.cedulaPhotoName,
         status: "ACTIVO",
         roleId: teacherRole.id,
         teacherProfile: {
@@ -200,4 +237,5 @@ module.exports = {
   getRegistrationRequests,
   approveRegistrationRequest,
   rejectRegistrationRequest,
+  getRegistrationRequestCedulaPhoto,
 };

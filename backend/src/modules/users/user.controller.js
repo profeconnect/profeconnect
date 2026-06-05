@@ -30,7 +30,28 @@ async function updateUserStatus(req, res, next) {
   }
 }
 
+async function getUserCedulaPhoto(req, res, next) {
+  try {
+    const photo = await userService.getUserCedulaPhoto(req.params.id);
+
+    res.setHeader("Content-Type", photo.mimeType);
+    res.setHeader(
+      "Content-Disposition",
+      `inline; filename="${photo.filename}"`
+    );
+
+    return res.sendFile(photo.fullPath, (err) => {
+      if (err) {
+        next(err);
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   getUsers,
   updateUserStatus,
+  getUserCedulaPhoto,
 };

@@ -8,28 +8,28 @@ const router = express.Router();
 router.get(
   "/",
   authMiddleware,
-  requireRole("admin", "moderator"),
+  requireRole("admin", "moderador"),
   incidentController.getPendingIncidents
 );
 
 router.patch(
   "/:id/resolve",
   authMiddleware,
-  requireRole("admin", "moderator"),
+  requireRole("admin", "moderador"),
   incidentController.resolveIncident
 );
 
 router.get(
   "/:id/download",
   authMiddleware,
-  requireRole("admin", "moderator"),
+  requireRole("admin", "moderador"),
   incidentController.downloadIncidentFile
 );
 
 router.delete(
   "/:id/publication",
   authMiddleware,
-  requireRole("admin", "moderator"),
+  requireRole("admin", "moderador"),
   incidentController.deletePostFromIncident
 );
 

@@ -51,6 +51,8 @@ export interface RegistrationRequest {
   institutionalEmail: string;
   firstName: string;
   lastName: string;
+  hasCedulaPhoto: boolean;
+  cedulaPhotoName: string | null;
   area: string | null;
   description: string | null;
   status: RegistrationRequestStatus;
@@ -81,6 +83,7 @@ export interface RegisterRequestPayload {
   password: string;
   firstName: string;
   lastName: string;
+  cedulaPhoto: File;
   area?: string;
   description?: string;
 }

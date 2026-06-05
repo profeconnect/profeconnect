@@ -9,9 +9,18 @@ async function createRegistrationRequest(data) {
     password,
     firstName,
     lastName,
+    cedulaPhotoPath,
+    cedulaPhotoMime,
+    cedulaPhotoName,
     area,
     description,
   } = data;
+
+  if (!cedulaPhotoPath) {
+    const error = new Error("La foto de cédula es obligatoria");
+    error.statusCode = 400;
+    throw error;
+  }
 
   const existingUser = await prisma.user.findUnique({
     where: {
@@ -50,12 +59,15 @@ async function createRegistrationRequest(data) {
 
   const passwordHash = await bcrypt.hash(password, 10);
 
-  return prisma.registrationRequest.create({
+  const created = await prisma.registrationRequest.create({
     data: {
       institutionalEmail,
       passwordHash,
       firstName,
       lastName,
+      cedulaPhotoPath,
+      cedulaPhotoMime,
+      cedulaPhotoName,
       area,
       description,
       status: "PENDIENTE",
@@ -65,12 +77,20 @@ async function createRegistrationRequest(data) {
       institutionalEmail: true,
       firstName: true,
       lastName: true,
+      cedulaPhotoPath: true,
+      cedulaPhotoName: true,
       area: true,
       description: true,
       status: true,
       createdAt: true,
     },
   });
+
+  return {
+    ...created,
+    hasCedulaPhoto: Boolean(created.cedulaPhotoPath),
+    cedulaPhotoPath: undefined,
+  };
 }
 
 async function login(data) {

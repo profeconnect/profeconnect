@@ -19,9 +19,18 @@ export async function login(payload: LoginPayload): Promise<LoginResponse> {
 export async function registerRequest(
   payload: RegisterRequestPayload
 ): Promise<RegistrationRequest> {
+  const formData = new FormData();
+  formData.append('institutionalEmail', payload.institutionalEmail);
+  formData.append('password', payload.password);
+  formData.append('firstName', payload.firstName);
+  formData.append('lastName', payload.lastName);
+  formData.append('cedulaPhoto', payload.cedulaPhoto);
+  if (payload.area) formData.append('area', payload.area);
+  if (payload.description) formData.append('description', payload.description);
+
   const response = await apiClient.post<ApiResponse<RegistrationRequest>>(
     '/auth/register-request',
-    payload
+    formData
   );
   return response.data.data;
 }
