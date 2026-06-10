@@ -365,7 +365,9 @@ export default function PublicationCard({ pub, onDelete }: PublicationCardProps)
                 {pub.attachments.map((file) => {
                   const isImage = file.type === 'IMAGE';
                   const folder = file.type === "IMAGE" ? "images" : "documents";
-                  const fileUrl = `${publicFilesBaseUrl}/public/${folder}/${file.filename}`;
+                  const fileUrl =
+                    file.url ||
+                    `${publicFilesBaseUrl}/public/${folder}/${file.filename}`;
                   const displayName = file.originalName || file.filename || 'Archivo';
                   
                   return (

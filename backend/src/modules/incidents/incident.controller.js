@@ -1,5 +1,9 @@
 const { ApiResponse } = require("../../config/api.response");
 const incidentService = require("./incident.service");
+const {
+  isStorageUri,
+  downloadStorageFile,
+} = require("../../lib/storage");
 
 const prisma = require("../../lib/prisma");
 
@@ -30,6 +34,13 @@ class IncidentController {
       
       if (!incident || !incident.physicalPath) {
         return res.status(404).json(new ApiResponse(false, 404, "Archivo no encontrado o no disponible"));
+      }
+
+      if (isStorageUri(incident.physicalPath)) {
+        const fileBuffer = await downloadStorageFile(incident.physicalPath);
+        res.setHeader("Content-Type", incident.detectedMime || incident.attemptedMime || "application/octet-stream");
+        res.setHeader("Content-Disposition", `attachment; filename="${incident.fileName}"`);
+        return res.send(fileBuffer);
       }
 
       res.download(incident.physicalPath, incident.fileName, (err) => {

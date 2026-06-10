@@ -1,5 +1,28 @@
 const authService = require("./auth.service");
 const { ApiResponse } = require("../../config/api.response");
+const { resolveCedulaPath } = require("../../lib/cedula-storage");
+const {
+  isStorageUri,
+  parseStorageUri,
+  removeStorageObjects,
+  removeLocalFile,
+} = require("../../lib/storage");
+
+async function cleanupRejectedCedulaUpload(req) {
+  try {
+    if (!req.cedulaPhotoPath) return;
+
+    if (isStorageUri(req.cedulaPhotoPath)) {
+      const parsed = parseStorageUri(req.cedulaPhotoPath);
+      await removeStorageObjects([parsed]);
+      return;
+    }
+
+    removeLocalFile(resolveCedulaPath(req.cedulaPhotoPath));
+  } catch (cleanupError) {
+    console.warn("No se pudo limpiar la foto de cedula rechazada", cleanupError.message);
+  }
+}
 
 /**
  * Registrar solicitud de registro
@@ -17,6 +40,7 @@ async function registerRequest(req, res, next) {
 
     return res.status(201).json(apiResponse);
   } catch (error) {
+    await cleanupRejectedCedulaUpload(req);
     next(error);
   }
 }

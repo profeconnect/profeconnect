@@ -27,6 +27,7 @@
   "dependencies": {
     "@prisma/adapter-pg": "^6.19.3",
     "@prisma/client": "^6.19.3",
+    "@supabase/supabase-js": "^2.108.1",
     "bcryptjs": "^3.0.3",
     "clamscan": "^2.4.0",
     "cors": "^2.8.6",
@@ -46,6 +47,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@types/node": "^25.9.2",
     "nodemon": "^3.1.14"
   }
 }

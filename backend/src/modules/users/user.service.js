@@ -1,5 +1,9 @@
 const prisma = require("../../lib/prisma");
 const { resolveCedulaPath } = require("../../lib/cedula-storage");
+const {
+  isStorageUri,
+  downloadStorageFile,
+} = require("../../lib/storage");
 
 const VALID_USER_STATUSES = ["ACTIVO", "INACTIVO", "PENDIENTE", "BLOQUEADO"];
 
@@ -97,8 +101,13 @@ async function getUserCedulaPhoto(userId) {
     throw error;
   }
 
+  const storageFile = isStorageUri(user.cedulaPhotoPath)
+    ? await downloadStorageFile(user.cedulaPhotoPath)
+    : null;
+
   return {
-    fullPath: resolveCedulaPath(user.cedulaPhotoPath),
+    fullPath: storageFile ? null : resolveCedulaPath(user.cedulaPhotoPath),
+    buffer: storageFile,
     mimeType: user.cedulaPhotoMime || "application/octet-stream",
     filename: user.cedulaPhotoName || "cedula",
   };

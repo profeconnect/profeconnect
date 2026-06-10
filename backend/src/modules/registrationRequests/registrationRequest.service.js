@@ -1,5 +1,9 @@
 const prisma = require("../../lib/prisma");
 const { resolveCedulaPath } = require("../../lib/cedula-storage");
+const {
+  isStorageUri,
+  downloadStorageFile,
+} = require("../../lib/storage");
 
 /***
  * Obtener todas las solicitudes de registro pendientes por aprobar -- SOLO MODERADOR
@@ -70,8 +74,13 @@ async function getRegistrationRequestCedulaPhoto(requestId) {
     throw error;
   }
 
+  const storageFile = isStorageUri(request.cedulaPhotoPath)
+    ? await downloadStorageFile(request.cedulaPhotoPath)
+    : null;
+
   return {
-    fullPath: resolveCedulaPath(request.cedulaPhotoPath),
+    fullPath: storageFile ? null : resolveCedulaPath(request.cedulaPhotoPath),
+    buffer: storageFile,
     mimeType: request.cedulaPhotoMime || "application/octet-stream",
     filename: request.cedulaPhotoName || "cedula",
   };

@@ -115,7 +115,7 @@ export interface ReactionSummary {
 
 export interface Attachment {
   id: number;
-  url: string;
+  url?: string | null;
   fileType?: string;
   filename?: string;
   originalName?: string;

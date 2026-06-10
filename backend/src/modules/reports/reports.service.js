@@ -1,4 +1,12 @@
 const prisma = require("../../lib/prisma");
+const { getPublicUrl } = require("../../lib/storage");
+
+function mapAttachment(attachment) {
+  return {
+    ...attachment,
+    url: getPublicUrl(attachment.path),
+  };
+}
 
 async function getAllReports() {
   const reports = await prisma.reports.findMany({
@@ -94,7 +102,7 @@ async function getReportedPosts() {
       status: post.status,
       createdAt: post.createdAt,
       updatedAt: post.updatedAt,
-      attachments: post.attachments,
+      attachments: post.attachments.map(mapAttachment),
       tags: post.tags,
       author: {
         id: post.author.id,

@@ -42,6 +42,10 @@ async function getRegistrationRequestCedulaPhoto(req, res, next) {
       `inline; filename="${photo.filename}"`
     );
 
+    if (photo.buffer) {
+      return res.send(photo.buffer);
+    }
+
     return res.sendFile(photo.fullPath, (err) => {
       if (err) {
         next(err);

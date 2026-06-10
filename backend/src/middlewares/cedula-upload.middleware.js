@@ -1,6 +1,10 @@
 const multer = require("multer");
 const path = require("path");
 const { CEDULA_DIR, toRelativeCedulaPath } = require("../lib/cedula-storage");
+const {
+  uploadPrivateFile,
+  removeLocalFile,
+} = require("../lib/storage");
 
 function sanitizeFilename(name) {
   return name
@@ -31,13 +35,27 @@ const cedulaUpload = multer({
   },
 });
 
-function attachCedulaPhotoMeta(req, _res, next) {
-  if (req.file) {
-    req.cedulaPhotoPath = toRelativeCedulaPath(req.file.filename);
-    req.cedulaPhotoMime = req.file.mimetype || "application/octet-stream";
-    req.cedulaPhotoName = req.file.originalname;
+async function attachCedulaPhotoMeta(req, _res, next) {
+  try {
+    if (req.file) {
+      const uploadResult = await uploadPrivateFile(req.file, "cedulas");
+      req.cedulaPhotoPath = uploadResult.storedInSupabase
+        ? uploadResult.uri
+        : toRelativeCedulaPath(req.file.filename);
+      req.cedulaPhotoMime = req.file.mimetype || "application/octet-stream";
+      req.cedulaPhotoName = req.file.originalname;
+
+      if (uploadResult.storedInSupabase) {
+        removeLocalFile(req.file.path);
+      }
+    }
+    next();
+  } catch (error) {
+    if (req.file?.path) {
+      removeLocalFile(req.file.path);
+    }
+    next(error);
   }
-  next();
 }
 
 module.exports = {

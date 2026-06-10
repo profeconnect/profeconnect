@@ -6,8 +6,24 @@ const {
   buildReactionSummary,
   getMyReaction,
 } = require("../reactions/reaction.service");
+const {
+  getPublicUrl,
+  isStorageUri,
+  uploadPublicationFile,
+  removeStorageObjects,
+  removeLocalFile,
+} = require("../../lib/storage");
 
 const PUBLIC_DIR = path.resolve(__dirname, "../../../public");
+
+function mapAttachmentToResponse(attachment) {
+  if (!attachment) return attachment;
+
+  return {
+    ...attachment,
+    url: getPublicUrl(attachment.path),
+  };
+}
 
 function mapPostToResponse(post, currentUserId) {
   const shouldHideAuthor = post.isAnonymous;
@@ -21,7 +37,7 @@ function mapPostToResponse(post, currentUserId) {
     status: post.status,
     createdAt: post.createdAt,
     updatedAt: post.updatedAt,
-    attachments: post.attachments,
+    attachments: (post.attachments ?? []).map(mapAttachmentToResponse),
     comments: (post.comments ?? []).map(mapCommentToResponse),
     tags: post.tags ?? [],
     reactionSummary: buildReactionSummary(reactions),
@@ -50,7 +66,7 @@ function mapFileToAttachment(file) {
     filename: file.filename,
     originalName: file.originalname,
     mimeType: file.mimetype,
-    path: file.path,
+    path: file.storageUri || file.path,
     size: file.size,
     type: file.mimetype.startsWith("image/") ? "IMAGE" : "DOCUMENT",
     isSuspicious: file.isSuspicious || false,
@@ -58,31 +74,33 @@ function mapFileToAttachment(file) {
 }
 
 async function createPublication({ title, content, isAnonymous, authorId, files = [], tagIds }) {
-  const post = await prisma.post.create({
-    data: {
-      title: title.trim(),
-      content: content.trim(),
-      isAnonymous: isAnonymous ?? false,
-      authorId,
-      attachments: {
-        create: files.map(mapFileToAttachment),
-      },
-      ...(tagIds !== undefined && {
-        tags: {
-          connect: tagIds.map(id => ({ id })),
-        },
-      }),
-    },
-    include: {
-      author: {
-        include: {
-          role: true,
-        },
-      },
-      attachments: true,
-      comments: {
-        orderBy: {
-          createdAt: "asc",
+  const uploadedObjects = [];
+
+  try {
+    for (const file of files) {
+      const uploadResult = await uploadPublicationFile(file);
+      if (uploadResult.storedInSupabase) {
+        file.storageUri = uploadResult.uri;
+        file.storedInSupabase = true;
+        uploadedObjects.push(uploadResult);
+      }
+    }
+
+    const post = await prisma.$transaction(async (tx) => {
+      const createdPost = await tx.post.create({
+        data: {
+          title: title.trim(),
+          content: content.trim(),
+          isAnonymous: isAnonymous ?? false,
+          authorId,
+          attachments: {
+            create: files.map(mapFileToAttachment),
+          },
+          ...(tagIds !== undefined && {
+            tags: {
+              connect: tagIds.map(id => ({ id })),
+            },
+          }),
         },
         include: {
           author: {
@@ -90,36 +108,63 @@ async function createPublication({ title, content, isAnonymous, authorId, files 
               role: true,
             },
           },
+          attachments: true,
+          comments: {
+            orderBy: {
+              createdAt: "asc",
+            },
+            include: {
+              author: {
+                include: {
+                  role: true,
+                },
+              },
+            },
+          },
+          tags: true,
+          reactions: {
+            select: {
+              type: true,
+              userId: true,
+            },
+          },
         },
-      },
-      tags: true,
-      reactions: {
-        select: {
-          type: true,
-          userId: true,
-        },
-      },
-    },
-  });
-
-  for (const file of files) {
-    if (file.isSuspicious) {
-      await prisma.securityIncident.create({
-        data: {
-          userId: authorId,
-          fileName: file.originalname,
-          attemptedMime: file.attemptedMime || file.mimetype,
-          detectedMime: file.detectedMime || "unknown",
-          status: "PENDING",
-          physicalPath: file.path,
-          postId: post.id,
-          fileMetadata: file.extractedMetadata || null
-        }
       });
-    }
-  }
 
-  return mapPostToResponse(post, authorId);
+      for (const file of files) {
+        if (file.isSuspicious) {
+          await tx.securityIncident.create({
+            data: {
+              userId: authorId,
+              fileName: file.originalname,
+              attemptedMime: file.attemptedMime || file.mimetype,
+              detectedMime: file.detectedMime || "unknown",
+              status: "PENDING",
+              physicalPath: file.storageUri || file.path,
+              postId: createdPost.id,
+              fileMetadata: file.extractedMetadata || null
+            },
+          });
+        }
+      }
+
+      return createdPost;
+    });
+
+    for (const file of files) {
+      if (file.storedInSupabase) {
+        removeLocalFile(file.path);
+      }
+    }
+
+    return mapPostToResponse(post, authorId);
+  } catch (error) {
+    await removeStorageObjects(uploadedObjects);
+    for (const file of files) {
+      removeLocalFile(file.path);
+    }
+    throw error;
+  }
 }
 
 async function getPublicationFeed({ tagIds, currentUserId, page = 1, limit = 10 } = {}) {
@@ -348,8 +393,8 @@ async function getPublicationAttachments(postId) {
     const folder = att.type === "IMAGE" ? "images" : "documents";
     const diskPath = path.join(PUBLIC_DIR, folder, att.filename);
     return {
-      ...att,
-      existsOnDisk: fs.existsSync(diskPath),
+      ...mapAttachmentToResponse(att),
+      existsOnDisk: isStorageUri(att.path) ? false : fs.existsSync(diskPath),
     };
   });
 }
