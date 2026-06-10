@@ -63,7 +63,12 @@ export async function openRegistrationRequestCedulaPhoto(
     { responseType: 'blob' }
   );
 
-  const url = window.URL.createObjectURL(new Blob([response.data]));
+  const mimeType =
+    (response.headers['content-type'] as string | undefined) ||
+    'application/octet-stream';
+  const url = window.URL.createObjectURL(
+    new Blob([response.data], { type: mimeType })
+  );
   window.open(url, '_blank', 'noopener,noreferrer');
   window.setTimeout(() => window.URL.revokeObjectURL(url), 60_000);
 }
@@ -74,7 +79,12 @@ export async function openUserCedulaPhoto(userId: number): Promise<void> {
     { responseType: 'blob' }
   );
 
-  const url = window.URL.createObjectURL(new Blob([response.data]));
+  const mimeType =
+    (response.headers['content-type'] as string | undefined) ||
+    'application/octet-stream';
+  const url = window.URL.createObjectURL(
+    new Blob([response.data], { type: mimeType })
+  );
   window.open(url, '_blank', 'noopener,noreferrer');
   window.setTimeout(() => window.URL.revokeObjectURL(url), 60_000);
 }

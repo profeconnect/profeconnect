@@ -23,6 +23,6 @@ services:
       - key: ADMIN_PASSWORD
         sync: false
       - key: FRONTEND_URL
-        value: https://amigojolive.onrender.com
+        value: https://profeconnect.up.railway.app
       - key: CHATBOT_API_KEY
         sync: false

@@ -6,7 +6,7 @@ const envUrlRaw = (
   import.meta.env.VITE_API_URL as string | undefined
 )?.trim();
 
-const PRODUCTION_API_URL = 'https://profeconnect-production.up.railway.app/api/v1';
+const PRODUCTION_API_URL = 'https://profeconnect-backend.up.railway.app/api/v1';
 
 const baseURL =
   envUrlRaw && envUrlRaw.length > 0
