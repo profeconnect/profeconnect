@@ -4,6 +4,9 @@ import { useAuth } from '../context/AuthContext';
 import { RoleBadge } from './Badge';
 import type { Role } from '../types';
 
+// Importamos el nuevo logo
+import logoFya from '../assets/logo-fya.png';
+
 const MAIN_LINKS = [
   { to: '/dashboard', label: 'Inicio', end: true },
   { to: '/feed', label: 'Publicaciones', end: false },
@@ -121,9 +124,12 @@ export default function Navbar() {
             className="flex shrink-0 items-center gap-2"
             onClick={closeMenu}
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 font-bold text-white">
-              P
-            </div>
+            {/* Aquí reemplazamos el div con la "P" por el nuevo logo */}
+            <img 
+              src={logoFya} 
+              alt="Logo Fe y Alegría" 
+              className="h-8 w-auto object-contain" 
+            />
             <span className="text-lg font-semibold text-slate-900">
               ProfeConnect
             </span>

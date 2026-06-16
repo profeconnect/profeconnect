@@ -87,10 +87,15 @@ export default function AdminReviewsPage() {
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  const load = useCallback(async () => {
+  // Estados para el filtro de fechas
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+
+  // Modificamos la función para que acepte parámetros opcionales
+  const fetchReviews = useCallback(async (start?: string, end?: string) => {
     setLoading(true);
     try {
-      const data = await getPlatformReviews();
+      const data = await getPlatformReviews(start, end);
       setReviews(data.reviews);
       setAverageRating(data.averageRating);
       setTotalCount(data.totalCount);
@@ -101,9 +106,21 @@ export default function AdminReviewsPage() {
     }
   }, [toast]);
 
+  // Carga inicial (sin filtros)
   useEffect(() => {
-    load();
-  }, [load]);
+    fetchReviews();
+  }, [fetchReviews]);
+
+  // Funciones para manejar los botones del filtro
+  const handleFilter = () => {
+    fetchReviews(startDate, endDate);
+  };
+
+  const handleClear = () => {
+    setStartDate('');
+    setEndDate('');
+    fetchReviews('', ''); // Recarga todo
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -116,6 +133,48 @@ export default function AdminReviewsPage() {
         </p>
       </div>
 
+      {/* Tarjeta de Filtros */}
+      <div className="flex flex-wrap items-end gap-4 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+        <div className="flex flex-col">
+          <label htmlFor="startDate" className="mb-1 text-sm font-medium text-slate-700">
+            Fecha inicio
+          </label>
+          <input
+            type="date"
+            id="startDate"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+          />
+        </div>
+        <div className="flex flex-col">
+          <label htmlFor="endDate" className="mb-1 text-sm font-medium text-slate-700">
+            Fecha fin
+          </label>
+          <input
+            type="date"
+            id="endDate"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+          />
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={handleFilter}
+            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          >
+            Filtrar
+          </button>
+          <button
+            onClick={handleClear}
+            className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2"
+          >
+            Limpiar
+          </button>
+        </div>
+      </div>
+
       <AverageRatingCard averageRating={averageRating} totalCount={totalCount} />
 
       <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
@@ -125,7 +184,7 @@ export default function AdminReviewsPage() {
           </div>
         ) : reviews.length === 0 ? (
           <div className="p-8 text-center text-sm text-slate-600">
-            Aún no hay reseñas registradas.
+            Aún no hay reseñas registradas o no se encontraron en este rango de fechas.
           </div>
         ) : (
           <div className="overflow-x-auto">

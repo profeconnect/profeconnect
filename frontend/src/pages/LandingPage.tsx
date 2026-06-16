@@ -1,6 +1,10 @@
 import { Link } from 'react-router-dom';
 import heroImage from '../assets/hero.png';
 
+// Importamos los logos
+import logoFya from '../assets/logo-fya.png';
+import logoPuce from '../assets/logo-puce.png';
+
 export default function LandingPage() {
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden bg-white">
@@ -20,9 +24,12 @@ export default function LandingPage() {
             to="/"
             className="flex items-center gap-2 text-2xl font-bold tracking-tight text-slate-900 transition hover:text-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
           >
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-600 text-sm font-bold text-white">
-              P
-            </span>
+            {/* Reemplazamos el cuadro con la letra "P" por el logo oficial */}
+            <img 
+              src={logoFya} 
+              alt="Logo Fe y Alegría" 
+              className="h-9 w-auto object-contain" 
+            />
             ProfeConnect
           </Link>
           <nav
@@ -63,7 +70,7 @@ export default function LandingPage() {
             <p className="mt-6 text-lg leading-relaxed text-slate-600 md:text-xl">
               Nuestra misión es crear una comunidad pedagógica segura para
               profesores, desde educación primaria hasta áreas educativas
-              universitarias, donde puedan compartir contenido, consejos,
+              universarias, donde puedan compartir contenido, consejos,
               frustraciones e ideas.
             </p>
 
@@ -134,11 +141,39 @@ export default function LandingPage() {
         </div>
       </main>
 
-      <footer className="border-t border-red-100 bg-white/80 px-4 py-6 text-center backdrop-blur-sm sm:px-6">
-        <p className="text-base text-slate-600">
-          © {new Date().getFullYear()} ProfeConnect — Comunidad pedagógica para
-          docentes
-        </p>
+      {/* Nuevo Footer con Créditos y Logos */}
+      <footer className="mt-auto border-t border-red-100 bg-gray-50/80 py-10 backdrop-blur-sm">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col items-center justify-center text-center">
+            
+            {/* Contenedor de logos institucionales */}
+            <div className="mb-6 flex items-center justify-center gap-8 sm:gap-12">
+              <img 
+                src={logoFya} 
+                alt="Fe y Alegría Ecuador" 
+                className="h-14 w-auto object-contain opacity-80 grayscale transition-all duration-300 hover:opacity-100 hover:grayscale-0 sm:h-16" 
+              />
+              <div className="h-12 border-l border-gray-300" aria-hidden="true"></div>
+              <img 
+                src={logoPuce} 
+                alt="Pontificia Universidad Católica del Ecuador" 
+                className="h-14 w-auto object-contain opacity-80 grayscale transition-all duration-300 hover:opacity-100 hover:grayscale-0 sm:h-16" 
+              />
+            </div>
+            
+            {/* Texto de créditos */}
+            <div className="mb-6 max-w-2xl">
+              <p className="text-sm leading-relaxed text-slate-600">
+                ProfeConnect es una plataforma desarrollada para fortalecer la comunidad educativa. 
+                Un agradecimiento especial a la <strong>Pontificia Universidad Católica del Ecuador</strong> y a <strong>Fe y Alegría</strong> por su apoyo fundamental en este proyecto.
+              </p>
+            </div>
+            
+            <p className="text-sm text-slate-500">
+              © {new Date().getFullYear()} ProfeConnect — Comunidad pedagógica para docentes
+            </p>
+          </div>
+        </div>
       </footer>
     </div>
   );

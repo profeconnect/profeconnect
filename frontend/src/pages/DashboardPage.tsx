@@ -73,32 +73,43 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <section className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-sm font-medium text-brand-600">
-            Hola, {user.firstName}
-          </p>
-          <h1 className="text-2xl font-bold text-slate-900">
-            Tu comunidad pedagógica
-          </h1>
+      
+      {/* =========================================
+          NUEVA TARJETA DE BIENVENIDA (BANNER)
+          ========================================= */}
+      <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-50 via-white to-red-50 p-6 shadow-sm ring-1 ring-red-100 sm:p-8">
+        <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="max-w-2xl">
+            <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">
+              ¡Bienvenido, {user.firstName}! 👋
+            </h1>
+            <p className="mt-3 text-lg leading-relaxed text-slate-600">
+              Qué alegría tenerte en nuestra red pedagógica. Este es tu espacio ideal para compartir experiencias, descubrir recursos invaluables y encontrar la inspiración para tu día a día como docente.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-3 lg:flex-col lg:items-end lg:justify-center">
+            <Link
+              to="/chatbot"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-5 py-2.5 text-sm font-medium text-brand-700 transition hover:bg-brand-100 sm:w-auto"
+            >
+              <span aria-hidden>🤖</span>
+              Ir al Chatbot
+            </Link>
+            <Link
+              to="/feed"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:border-brand-200 hover:text-brand-700 sm:w-auto"
+            >
+              Ver todas las publicaciones
+            </Link>
+          </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <Link
-            to="/chatbot"
-            className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-medium text-brand-700 transition hover:bg-brand-100"
-          >
-            <span aria-hidden>💬</span>
-            Ir al Chatbot
-          </Link>
-          <Link
-            to="/feed"
-            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-brand-200 hover:text-brand-700"
-          >
-            Ver todas las publicaciones
-          </Link>
-        </div>
+        {/* Círculos decorativos de fondo */}
+        <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-red-100/50 blur-3xl" aria-hidden="true" />
+        <div className="absolute -bottom-8 right-1/3 h-32 w-32 rounded-full bg-blue-100/40 blur-2xl" aria-hidden="true" />
       </section>
+      {/* ========================================= */}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-start">
         {/* 1. Feed — columna izquierda */}

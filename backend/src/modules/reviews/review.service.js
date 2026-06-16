@@ -21,9 +21,29 @@ class ReviewService {
     });
   }
 
-  async getAllReviews() {
+  async getAllReviews(startDate, endDate) {
+    // 1. Construir el filtro condicional
+    const where = {};
+
+    if (startDate || endDate) {
+      where.createdAt = {};
+      
+      if (startDate) {
+        where.createdAt.gte = new Date(startDate);
+      }
+      
+      if (endDate) {
+        // Aseguramos que cubra hasta el último milisegundo del día final seleccionado
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        where.createdAt.lte = end;
+      }
+    }
+
+    // 2. Ejecutar ambas consultas simultáneas aplicando el filtro 'where'
     const [reviews, aggregate] = await Promise.all([
       prisma.platformReview.findMany({
+        where, // Filtramos la lista
         include: {
           user: {
             select: {
@@ -39,6 +59,7 @@ class ReviewService {
         },
       }),
       prisma.platformReview.aggregate({
+        where, // Filtramos el cálculo del promedio y total
         _avg: { rating: true },
         _count: { id: true },
       }),
@@ -46,7 +67,7 @@ class ReviewService {
 
     return {
       reviews,
-      averageRating: aggregate._avg.rating ?? 0,
+      averageRating: aggregate._avg.rating ? Number(aggregate._avg.rating.toFixed(1)) : 0,
       totalCount: aggregate._count.id,
     };
   }

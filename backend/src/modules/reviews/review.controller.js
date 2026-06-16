@@ -29,7 +29,12 @@ class ReviewController {
 
   async getAllReviews(req, res, next) {
     try {
-      const data = await reviewService.getAllReviews();
+      // 1. Extraemos las fechas de los parámetros de la URL
+      const { startDate, endDate } = req.query;
+
+      // 2. Pasamos las fechas al servicio
+      const data = await reviewService.getAllReviews(startDate, endDate);
+      
       return res.json(
         new ApiResponse(true, 200, "Reseñas obtenidas exitosamente", data)
       );

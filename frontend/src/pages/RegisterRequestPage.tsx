@@ -5,6 +5,7 @@ import Field from '../components/Field';
 import { useToast } from '../components/Toast';
 import { extractErrorMessage } from '../api/client';
 import { registerInstitutional, registerRequest } from '../api/auth.service';
+import logoFya from '../assets/logo-fya.png';
 
 type RegisterMode = 'CEDULA' | 'INSTITUTIONAL_EMAIL';
 
@@ -128,9 +129,11 @@ export default function RegisterRequestPage() {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-brand-50 via-white to-slate-100 px-4 py-10">
       <div className="w-full max-w-2xl">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-600 text-xl font-bold text-white shadow-lg">
-            A
-          </div>
+          <img 
+            src={logoFya} 
+            alt="Logo Fe y Alegría" 
+            className="mx-auto mb-4 h-16 w-auto object-contain" 
+          />
           <h1 className="text-2xl font-semibold text-slate-900">
             Solicitud de registro
           </h1>
