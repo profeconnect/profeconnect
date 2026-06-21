@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { getChatbotSocket, disconnectChatbot, sendChatStream, type ChatMessage } from '../api/socket';
+import { trackEvent } from '../lib/analytics';
 
 export default function ChatbotPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -62,6 +63,7 @@ export default function ChatbotPage() {
           return updated;
         });
       });
+      trackEvent('chatbot_message_sent');
       setStreaming(false);
     } catch (err) {
       setMessages((prev) => [

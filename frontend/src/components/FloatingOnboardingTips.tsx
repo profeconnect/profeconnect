@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react';
 import Button from './Button';
 import { createPlatformReview } from '../api/review.service';
 import { extractErrorMessage } from '../api/client';
+import { trackEvent } from '../lib/analytics';
 
 type CardId = 'rating' | 'tip1' | 'tip2';
 
@@ -104,6 +105,7 @@ function RatingCard({ onClose }: { onClose: () => void }) {
         rating,
         comment: comment.trim() || undefined,
       });
+      trackEvent('platform_review_submitted', { rating });
       setThankYou(true);
       window.setTimeout(onClose, 2200);
     } catch (err) {

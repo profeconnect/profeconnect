@@ -5,6 +5,7 @@ import Field from '../components/Field';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 import { extractErrorMessage } from '../api/client';
+import { trackEvent } from '../lib/analytics';
 import logoFya from '../assets/logo-fya.png';
 
 interface LocationState {
@@ -42,10 +43,11 @@ export default function LoginPage() {
 
     setSubmitting(true);
     try {
-      await login({
+      const loggedUser = await login({
         institutionalEmail: institutionalEmail.trim(),
         password,
       });
+      trackEvent('login_success', { user_role: loggedUser.role });
       toast.success('Sesión iniciada correctamente');
       const target =
         (location.state as LocationState | null)?.from?.pathname ?? '/dashboard';

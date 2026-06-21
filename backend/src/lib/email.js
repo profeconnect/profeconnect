@@ -1,31 +1,42 @@
-const { Resend } = require("resend");
+const nodemailer = require("nodemailer");
 
-const DEFAULT_FROM = "ProfeConnect <onboarding@resend.dev>";
+let mailer;
 
 function isEmailConfigured() {
-  return Boolean(process.env.RESEND_API_KEY && process.env.RESEND_FROM_EMAIL);
+  return Boolean(process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD);
 }
 
-function isResendTestMode() {
-  return String(process.env.RESEND_TEST_MODE || "").toLowerCase() === "true";
+function isEmailTestMode() {
+  return String(process.env.EMAIL_TEST_MODE || "").toLowerCase() === "true";
 }
 
 function getTestRecipient() {
-  return (process.env.RESEND_TEST_TO_EMAIL || "").trim();
+  return (process.env.EMAIL_TEST_TO_EMAIL || "").trim();
 }
 
 function getMailer() {
-  if (!process.env.RESEND_API_KEY) {
+  if (!isEmailConfigured()) {
     return null;
   }
 
-  return new Resend(process.env.RESEND_API_KEY);
+  if (!mailer) {
+    mailer = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.GMAIL_USER.trim(),
+        pass: process.env.GMAIL_APP_PASSWORD.replace(/\s/g, ""),
+      },
+    });
+  }
+
+  return mailer;
 }
 
 async function sendEmail({ to, subject, html, text, required = false }) {
-  const from = process.env.RESEND_FROM_EMAIL || DEFAULT_FROM;
-  const mailer = getMailer();
-  const testMode = isResendTestMode();
+  const fromName = (process.env.EMAIL_FROM_NAME || "ProfeConnect").trim();
+  const from = `${fromName} <${process.env.GMAIL_USER || "correo-no-configurado"}>`;
+  const transport = getMailer();
+  const testMode = isEmailTestMode();
   const testRecipient = getTestRecipient();
   const recipient = testMode ? testRecipient : to;
   const finalSubject = testMode ? `[TEST] ${subject}` : subject;
@@ -36,8 +47,8 @@ async function sendEmail({ to, subject, html, text, required = false }) {
     ? `${text}\n\nDestinatario original: ${to}`
     : text;
 
-  if (!mailer || !process.env.RESEND_FROM_EMAIL) {
-    const message = `Correo no enviado porque Resend no esta configurado: ${subject} -> ${to}`;
+  if (!transport) {
+    const message = `Correo no enviado porque Gmail no esta configurado: ${subject} -> ${to}`;
 
     if (process.env.NODE_ENV === "production") {
       const error = new Error(message);
@@ -56,7 +67,7 @@ async function sendEmail({ to, subject, html, text, required = false }) {
   }
 
   if (testMode && !testRecipient) {
-    const message = "RESEND_TEST_MODE esta activo, pero RESEND_TEST_TO_EMAIL no esta configurado";
+    const message = "EMAIL_TEST_MODE esta activo, pero EMAIL_TEST_TO_EMAIL no esta configurado";
 
     if (process.env.NODE_ENV === "production" || required) {
       const error = new Error(message);
@@ -74,21 +85,18 @@ async function sendEmail({ to, subject, html, text, required = false }) {
     return null;
   }
 
-  const { data, error } = await mailer.emails.send({
-    from,
-    to: recipient,
-    subject: finalSubject,
-    html: finalHtml,
-    text: finalText,
-  });
-
-  if (error) {
-    const sendError = new Error(error.message || "No se pudo enviar el correo");
-    sendError.statusCode = required || process.env.NODE_ENV === "production" ? 500 : undefined;
-    throw sendError;
+  try {
+    return await transport.sendMail({
+      from,
+      to: recipient,
+      subject: finalSubject,
+      html: finalHtml,
+      text: finalText,
+    });
+  } catch (error) {
+    error.statusCode = required || process.env.NODE_ENV === "production" ? 500 : undefined;
+    throw error;
   }
-
-  return data;
 }
 
 function paragraph(value) {

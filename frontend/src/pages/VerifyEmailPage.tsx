@@ -4,6 +4,7 @@ import Button from '../components/Button';
 import Spinner from '../components/Spinner';
 import { extractErrorMessage } from '../api/client';
 import { verifyEmail } from '../api/auth.service';
+import { trackEvent } from '../lib/analytics';
 
 type VerificationState = 'loading' | 'success' | 'error';
 
@@ -33,10 +34,13 @@ export default function VerifyEmailPage() {
     const request =
       verificationRequests.get(verificationToken) ??
       verifyEmail(verificationToken)
-        .then<VerificationResult>(() => ({
-          state: 'success',
-          message: 'Cuenta verificada exitosamente. Tu usuario docente ya esta activo.',
-        }))
+        .then<VerificationResult>(() => {
+          trackEvent('email_verification_success');
+          return {
+            state: 'success',
+            message: 'Cuenta verificada exitosamente. Tu usuario docente ya esta activo.',
+          };
+        })
         .catch<VerificationResult>((error) => ({
           state: 'error',
           message: extractErrorMessage(

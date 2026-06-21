@@ -12,6 +12,7 @@ import { getPublicFilesBaseUrl } from '../api/client';
 import { createReport } from '../api/reports.service';
 import { useToast } from './Toast';
 import type { Publication, Comment, ReactionSummary, ReactionType } from '../types';
+import { trackEvent } from '../lib/analytics';
 
 interface PublicationCardProps {
   pub: Publication;
@@ -111,6 +112,7 @@ export default function PublicationCard({ pub, onDelete }: PublicationCardProps)
       const createdComment = await addComment(pub.id, commentContent.trim());
       setComments((prev) => [...prev, createdComment]);
       setCommentContent('');
+      trackEvent('comment_created');
       success('Comentario añadido.');
     } catch (err) {
       error('Error al añadir comentario.');
@@ -142,13 +144,18 @@ export default function PublicationCard({ pub, onDelete }: PublicationCardProps)
 
     setIsReacting(true);
     try {
+      const removingReaction = myReaction === type;
       const reactionState =
-        myReaction === type
+        removingReaction
           ? await removePublicationReaction(pub.id)
           : await setPublicationReaction(pub.id, type);
 
       setReactionSummary(reactionState.reactionSummary ?? emptyReactionSummary);
       setMyReaction(reactionState.myReaction ?? null);
+      trackEvent(
+        removingReaction ? 'reaction_removed' : 'reaction_updated',
+        removingReaction ? {} : { reaction_type: type }
+      );
     } catch (err) {
       error('Error al actualizar la reaccion.');
       console.error(err);

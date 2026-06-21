@@ -6,6 +6,7 @@ import { createPublication } from '../api/publication.service';
 import { getCategories, type Category } from '../api/category.service';
 import { useToast } from './Toast';
 import { extractErrorMessage } from '../api/client';
+import { trackEvent } from '../lib/analytics';
 
 interface CreatePublicationModalProps {
   open: boolean;
@@ -91,6 +92,7 @@ export default function CreatePublicationModal({
       files.forEach((file) => formData.append('files', file));
 
       await createPublication(formData);
+      trackEvent('publication_created');
       success('Publicación creada correctamente.');
       resetForm();
       onSuccess();

@@ -5,6 +5,7 @@ import Field from '../components/Field';
 import { useToast } from '../components/Toast';
 import { extractErrorMessage } from '../api/client';
 import { registerInstitutional, registerRequest } from '../api/auth.service';
+import { trackEvent } from '../lib/analytics';
 import logoFya from '../assets/logo-fya.png';
 
 type RegisterMode = 'CEDULA' | 'INSTITUTIONAL_EMAIL';
@@ -105,11 +106,15 @@ export default function RegisterRequestPage() {
           ...payload,
           cedulaPhoto,
         });
+        trackEvent('registration_submitted', { method: 'cedula' });
         toast.success(
           'Solicitud enviada. Un administrador la revisara en breve.'
         );
       } else {
         await registerInstitutional(payload);
+        trackEvent('registration_submitted', {
+          method: 'institutional_email',
+        });
         toast.success(
           'Solicitud enviada. Revisa tu correo institucional para verificar la cuenta.'
         );
