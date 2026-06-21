@@ -46,6 +46,9 @@ export function initializeAnalytics(): boolean {
   script.id = 'google-analytics-script';
   script.async = true;
   script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(measurementId!)}`;
+  script.addEventListener('error', () => {
+    console.warn('No se pudo cargar Google Analytics.');
+  });
   document.head.appendChild(script);
 
   window.gtag?.('js', new Date());
@@ -66,6 +69,7 @@ export function trackPageView(pathname: string) {
     page_location: `${window.location.origin}${pathname}`,
     page_title: document.title,
     debug_mode: debugMode,
+    send_to: measurementId!,
   });
 }
 
@@ -82,5 +86,6 @@ export function trackEvent(
   window.gtag?.('event', eventName, {
     ...safeParams,
     debug_mode: debugMode,
+    send_to: measurementId!,
   });
 }
