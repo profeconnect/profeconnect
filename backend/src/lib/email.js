@@ -21,7 +21,15 @@ function getMailer() {
 
   if (!mailer) {
     mailer = nodemailer.createTransport({
-      service: "gmail",
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
+      pool: true,
+      maxConnections: 2,
+      maxMessages: 100,
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 20000,
       auth: {
         user: process.env.GMAIL_USER.trim(),
         pass: process.env.GMAIL_APP_PASSWORD.replace(/\s/g, ""),
@@ -32,7 +40,15 @@ function getMailer() {
   return mailer;
 }
 
-async function sendEmail({ to, subject, html, text, required = false }) {
+function getRecipientDomain(email) {
+  return String(email || "").split("@").pop() || "desconocido";
+}
+
+function logDelivery(level, message, details) {
+  console[level](`[email] ${message}`, details);
+}
+
+async function sendEmail({ to, subject, html, text, required = false, kind }) {
   const fromName = (process.env.EMAIL_FROM_NAME || "ProfeConnect").trim();
   const from = `${fromName} <${process.env.GMAIL_USER || "correo-no-configurado"}>`;
   const transport = getMailer();
@@ -46,13 +62,19 @@ async function sendEmail({ to, subject, html, text, required = false }) {
   const finalText = testMode
     ? `${text}\n\nDestinatario original: ${to}`
     : text;
+  const startedAt = Date.now();
+  const logContext = {
+    kind,
+    recipientDomain: getRecipientDomain(recipient || to),
+    testMode,
+  };
 
   if (!transport) {
-    const message = `Correo no enviado porque Gmail no esta configurado: ${subject} -> ${to}`;
+    const message = "Correo no enviado porque Gmail no esta configurado";
 
     if (process.env.NODE_ENV === "production") {
       const error = new Error(message);
-      error.statusCode = 500;
+      error.statusCode = required ? 503 : 500;
       throw error;
     }
 
@@ -71,7 +93,7 @@ async function sendEmail({ to, subject, html, text, required = false }) {
 
     if (process.env.NODE_ENV === "production" || required) {
       const error = new Error(message);
-      error.statusCode = 500;
+      error.statusCode = required ? 503 : 500;
       throw error;
     }
 
@@ -86,16 +108,72 @@ async function sendEmail({ to, subject, html, text, required = false }) {
   }
 
   try {
-    return await transport.sendMail({
+    const result = await transport.sendMail({
       from,
       to: recipient,
       subject: finalSubject,
       html: finalHtml,
       text: finalText,
     });
+
+    logDelivery("info", "enviado", {
+      ...logContext,
+      durationMs: Date.now() - startedAt,
+      messageId: result.messageId,
+    });
+
+    return result;
   } catch (error) {
-    error.statusCode = required || process.env.NODE_ENV === "production" ? 500 : undefined;
+    logDelivery("error", "fallo", {
+      ...logContext,
+      durationMs: Date.now() - startedAt,
+      code: error.code,
+      command: error.command,
+      responseCode: error.responseCode,
+      message: error.message,
+    });
+    error.statusCode = required ? 503 : undefined;
     throw error;
+  }
+}
+
+function sendEmailInBackground(send, kind) {
+  Promise.resolve()
+    .then(send)
+    .catch((error) => {
+      logDelivery("warn", "notificacion no entregada", {
+        kind,
+        code: error.code,
+        message: error.message,
+      });
+    });
+}
+
+async function verifyEmailTransport() {
+  const transport = getMailer();
+
+  if (!transport) {
+    logDelivery("warn", "SMTP no configurado", {});
+    return false;
+  }
+
+  const startedAt = Date.now();
+
+  try {
+    await transport.verify();
+    logDelivery("info", "SMTP disponible", {
+      durationMs: Date.now() - startedAt,
+    });
+    return true;
+  } catch (error) {
+    logDelivery("error", "SMTP no disponible", {
+      durationMs: Date.now() - startedAt,
+      code: error.code,
+      command: error.command,
+      responseCode: error.responseCode,
+      message: error.message,
+    });
+    return false;
   }
 }
 
@@ -121,6 +199,7 @@ function layout(title, body) {
 
 async function sendRegistrationReceivedEmail(request) {
   return sendEmail({
+    kind: "registration_received",
     to: request.institutionalEmail,
     subject: "Solicitud de registro recibida",
     html: layout(
@@ -136,6 +215,7 @@ async function sendRegistrationReceivedEmail(request) {
 
 async function sendInstitutionalVerificationEmail(request, verificationUrl) {
   return sendEmail({
+    kind: "institutional_verification",
     to: request.institutionalEmail,
     subject: "Verifica tu correo institucional",
     required: true,
@@ -153,6 +233,7 @@ async function sendInstitutionalVerificationEmail(request, verificationUrl) {
 
 async function sendRegistrationApprovedEmail(request) {
   return sendEmail({
+    kind: "registration_approved",
     to: request.institutionalEmail,
     subject: "Solicitud de registro aprobada",
     html: layout(
@@ -172,6 +253,7 @@ async function sendRegistrationRejectedEmail(request) {
     : "";
 
   return sendEmail({
+    kind: "registration_rejected",
     to: request.institutionalEmail,
     subject: "Solicitud de registro rechazada",
     html: layout(
@@ -188,6 +270,7 @@ async function sendRegistrationRejectedEmail(request) {
 
 async function sendInstitutionalAccountActivatedEmail(request) {
   return sendEmail({
+    kind: "institutional_account_activated",
     to: request.institutionalEmail,
     subject: "Cuenta activada",
     html: layout(
@@ -203,6 +286,8 @@ async function sendInstitutionalAccountActivatedEmail(request) {
 
 module.exports = {
   isEmailConfigured,
+  sendEmailInBackground,
+  verifyEmailTransport,
   sendRegistrationReceivedEmail,
   sendInstitutionalVerificationEmail,
   sendRegistrationApprovedEmail,

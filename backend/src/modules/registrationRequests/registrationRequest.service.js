@@ -11,6 +11,7 @@ const {
 const {
   sendRegistrationApprovedEmail,
   sendRegistrationRejectedEmail,
+  sendEmailInBackground,
 } = require("../../lib/email");
 
 async function getRegistrationRequests(status) {
@@ -132,11 +133,10 @@ async function approveRegistrationRequest(requestId, adminUserId) {
     });
   });
 
-  try {
-    await sendRegistrationApprovedEmail(result.request);
-  } catch (emailError) {
-    console.warn("No se pudo enviar correo de solicitud aprobada", emailError.message);
-  }
+  sendEmailInBackground(
+    () => sendRegistrationApprovedEmail(result.request),
+    "registration_approved"
+  );
 
   return serializeUser(result.user);
 }
@@ -189,11 +189,10 @@ async function rejectRegistrationRequest(requestId, adminUserId, reviewComment) 
     },
   });
 
-  try {
-    await sendRegistrationRejectedEmail(updatedRequest);
-  } catch (emailError) {
-    console.warn("No se pudo enviar correo de solicitud rechazada", emailError.message);
-  }
+  sendEmailInBackground(
+    () => sendRegistrationRejectedEmail(updatedRequest),
+    "registration_rejected"
+  );
 
   return updatedRequest;
 }

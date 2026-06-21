@@ -5,6 +5,7 @@ const { Server } = require("socket.io");
 const app = require("./app");
 const setupChatbotSocket = require("./modules/chatbot/chatbot.socket");
 const prisma = require("./lib/prisma");
+const { verifyEmailTransport } = require("./lib/email");
 
 const PORT = process.env.PORT || 3000;
 
@@ -33,6 +34,7 @@ async function start() {
   }
 
   server.listen(PORT, () => {
+    void verifyEmailTransport();
     console.log(`Servidor ejecutándose en puerto ${PORT}`);
   });
 }

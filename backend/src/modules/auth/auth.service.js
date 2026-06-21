@@ -6,6 +6,7 @@ const {
   sendRegistrationReceivedEmail,
   sendInstitutionalVerificationEmail,
   sendInstitutionalAccountActivatedEmail,
+  sendEmailInBackground,
 } = require("../../lib/email");
 
 function getAllowedInstitutionalDomains() {
@@ -235,11 +236,10 @@ async function createRegistrationRequest(data) {
     },
   });
 
-  try {
-    await sendRegistrationReceivedEmail(created);
-  } catch (emailError) {
-    console.warn("No se pudo enviar correo de solicitud recibida", emailError.message);
-  }
+  sendEmailInBackground(
+    () => sendRegistrationReceivedEmail(created),
+    "registration_received"
+  );
 
   return {
     ...created,
@@ -293,7 +293,26 @@ async function createInstitutionalRegistrationRequest(data) {
     },
   });
 
-  await sendInstitutionalVerificationEmail(created, buildVerificationUrl(token));
+  try {
+    await sendInstitutionalVerificationEmail(created, buildVerificationUrl(token));
+  } catch (emailError) {
+    try {
+      await prisma.registrationRequest.deleteMany({
+        where: {
+          id: created.id,
+          method: "INSTITUTIONAL_EMAIL",
+          status: "PENDIENTE",
+        },
+      });
+    } catch (cleanupError) {
+      console.error("No se pudo limpiar la solicitud tras el fallo SMTP", {
+        requestId: created.id,
+        message: cleanupError.message,
+      });
+    }
+
+    throw emailError;
+  }
 
   return {
     ...created,
@@ -371,11 +390,10 @@ async function verifyInstitutionalEmail(token) {
     };
   });
 
-  try {
-    await sendInstitutionalAccountActivatedEmail(result.request);
-  } catch (emailError) {
-    console.warn("No se pudo enviar correo de cuenta activada", emailError.message);
-  }
+  sendEmailInBackground(
+    () => sendInstitutionalAccountActivatedEmail(result.request),
+    "institutional_account_activated"
+  );
 
   return serializeUser(result.user);
 }
