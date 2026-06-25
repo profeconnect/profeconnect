@@ -3,6 +3,7 @@ import ProtectedRoute from './ProtectedRoute';
 import RoleRoute from './RoleRoute';
 import Layout from '../components/Layout';
 import LandingPage from '../pages/LandingPage';
+import ProjectInfoPage from '../pages/ProjectInfoPage';
 import LoginPage from '../pages/LoginPage';
 import RegisterRequestPage from '../pages/RegisterRequestPage';
 import VerifyEmailPage from '../pages/VerifyEmailPage';
@@ -20,6 +21,8 @@ import PublicOnlyRoute from './PublicOnlyRoute';
 export default function AppRoutes() {
   return (
     <Routes>
+      <Route path="/acerca-del-proyecto" element={<ProjectInfoPage />} />
+
       <Route element={<PublicOnlyRoute />}>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />

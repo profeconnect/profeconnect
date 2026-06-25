@@ -167,6 +167,12 @@ export default function LandingPage() {
                 ProfeConnect es una plataforma desarrollada para fortalecer la comunidad educativa. 
                 Un agradecimiento especial a la <strong>Pontificia Universidad Católica del Ecuador</strong> y a <strong>Fe y Alegría</strong> por su apoyo fundamental en este proyecto.
               </p>
+              <Link
+                to="/acerca-del-proyecto"
+                className="mt-4 inline-flex min-h-[40px] items-center justify-center rounded-full border border-red-100 bg-white px-5 py-2 text-sm font-semibold text-brand-700 shadow-sm transition hover:border-brand-200 hover:bg-brand-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+              >
+                Ver créditos e información del proyecto
+              </Link>
             </div>
             
             <p className="text-sm text-slate-500">
